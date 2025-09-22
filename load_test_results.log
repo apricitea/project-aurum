@@ -1,0 +1,7 @@
+2025-09-21 14:20:09,442 - INFO - Starting Indonesian Market Load Testing...
+2025-09-21 14:20:09,442 - INFO - Simulating peak IDX trading volume with 50 concurrent users
+2025-09-21 14:20:09,442 - INFO - Starting Peak Market Volume Load Test
+2025-09-21 14:20:09,443 - INFO - Target: 50 concurrent users
+2025-09-21 14:20:09,443 - INFO - Duration: 60 seconds
+2025-09-21 14:21:39,660 - INFO - Load test completed in 90.22 seconds
+2025-09-21 14:21:39,693 - ERROR - Load test failed with error: 'charmap' codec can't encode character '\u2705' in position 857: character maps to <undefined>

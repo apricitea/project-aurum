@@ -1,0 +1,312 @@
+import React from 'react';
+import { toast } from 'react-hot-toast';
+
+export interface ErrorDetails {
+  message: string;
+  code?: string;
+  status?: number;
+  details?: any;
+  timestamp: string;
+  context?: string;
+}
+
+export class AppError extends Error {
+  public readonly code: string;
+  public readonly status: number;
+  public readonly details: any;
+  public readonly timestamp: string;
+  public readonly context: string;
+
+  constructor(
+    message: string,
+    code: string = 'UNKNOWN_ERROR',
+    status: number = 500,
+    details?: any,
+    context?: string
+  ) {
+    super(message);
+    this.name = 'AppError';
+    this.code = code;
+    this.status = status;
+    this.details = details;
+    this.timestamp = new Date().toISOString();
+    this.context = context || 'Unknown';
+  }
+
+  toJSON(): ErrorDetails {
+    return {
+      message: this.message,
+      code: this.code,
+      status: this.status,
+      details: this.details,
+      timestamp: this.timestamp,
+      context: this.context,
+    };
+  }
+}
+
+export class ApiError extends AppError {
+  constructor(message: string, status: number, details?: any) {
+    super(message, 'API_ERROR', status, details, 'API');
+  }
+}
+
+export class AuthError extends AppError {
+  constructor(message: string, details?: any) {
+    super(message, 'AUTH_ERROR', 401, details, 'Authentication');
+  }
+}
+
+export class ValidationError extends AppError {
+  constructor(message: string, details?: any) {
+    super(message, 'VALIDATION_ERROR', 400, details, 'Validation');
+  }
+}
+
+export class NetworkError extends AppError {
+  constructor(message: string, details?: any) {
+    super(message, 'NETWORK_ERROR', 0, details, 'Network');
+  }
+}
+
+export class DataError extends AppError {
+  constructor(message: string, details?: any) {
+    super(message, 'DATA_ERROR', 500, details, 'Data');
+  }
+}
+
+// Error logging service
+class ErrorLogger {
+  private errors: ErrorDetails[] = [];
+  private readonly maxErrors = 100;
+
+  log(error: Error | AppError, context?: string): void {
+    const errorDetails: ErrorDetails = error instanceof AppError
+      ? error.toJSON()
+      : {
+          message: error.message,
+          code: 'UNHANDLED_ERROR',
+          status: 500,
+          details: { stack: error.stack },
+          timestamp: new Date().toISOString(),
+          context: context || 'Unknown',
+        };
+
+    // Add to local storage for debugging
+    this.errors.unshift(errorDetails);
+    if (this.errors.length > this.maxErrors) {
+      this.errors.pop();
+    }
+
+    // Store in localStorage for persistence
+    try {
+      localStorage.setItem('error_logs', JSON.stringify(this.errors));
+    } catch (e) {
+      console.warn('Failed to save error logs to localStorage');
+    }
+
+    // Log to console in development
+    if (import.meta.env.DEV) {
+      console.error('Application Error:', errorDetails);
+    }
+
+    // In production, you would send to error tracking service like Sentry
+    if (import.meta.env.PROD) {
+      this.sendToErrorService(errorDetails);
+    }
+  }
+
+  private sendToErrorService(error: ErrorDetails): void {
+    // Placeholder for error tracking service integration
+    // Example: Sentry.captureException(error);
+    console.log('Would send to error tracking service:', error);
+  }
+
+  getRecentErrors(limit: number = 20): ErrorDetails[] {
+    return this.errors.slice(0, limit);
+  }
+
+  clearErrors(): void {
+    this.errors = [];
+    localStorage.removeItem('error_logs');
+  }
+}
+
+export const errorLogger = new ErrorLogger();
+
+// Global error handler
+export class GlobalErrorHandler {
+  static initialize(): void {
+    // Handle unhandled promise rejections
+    window.addEventListener('unhandledrejection', (event) => {
+      const error = event.reason instanceof Error
+        ? event.reason
+        : new Error(`Unhandled promise rejection: ${event.reason}`);
+
+      errorLogger.log(error, 'Unhandled Promise Rejection');
+      this.showUserNotification(error);
+      event.preventDefault();
+    });
+
+    // Handle uncaught errors
+    window.addEventListener('error', (event) => {
+      const error = new Error(event.message);
+      error.stack = `${event.filename}:${event.lineno}:${event.colno}`;
+
+      errorLogger.log(error, 'Uncaught Error');
+      this.showUserNotification(error);
+    });
+  }
+
+  static handleError(error: Error | AppError, context?: string): void {
+    errorLogger.log(error, context);
+    this.showUserNotification(error);
+  }
+
+  private static showUserNotification(error: Error | AppError): void {
+    if (error instanceof AuthError) {
+      toast.error('Authentication failed. Please log in again.');
+    } else if (error instanceof NetworkError) {
+      toast.error('Network connection error. Please check your internet connection.');
+    } else if (error instanceof ValidationError) {
+      toast.error(`Invalid input: ${error.message}`);
+    } else if (error instanceof ApiError) {
+      if (error.status >= 500) {
+        toast.error('Server error. Please try again later.');
+      } else {
+        toast.error(`Request failed: ${error.message}`);
+      }
+    } else {
+      // Generic error
+      toast.error('An unexpected error occurred. Please try again.');
+    }
+  }
+}
+
+// Utility functions for error handling
+export const handleAsync = async <T>(
+  promise: Promise<T>
+): Promise<[T | null, AppError | null]> => {
+  try {
+    const data = await promise;
+    return [data, null];
+  } catch (error) {
+    const appError = error instanceof AppError
+      ? error
+      : new AppError(
+          error instanceof Error ? error.message : 'Unknown error',
+          'ASYNC_ERROR',
+          500,
+          error
+        );
+    return [null, appError];
+  }
+};
+
+export const withErrorBoundary = <T extends (...args: any[]) => any>(
+  fn: T,
+  context?: string
+): T => {
+  return ((...args: any[]) => {
+    try {
+      const result = fn(...args);
+
+      // Handle async functions
+      if (result instanceof Promise) {
+        return result.catch((error) => {
+          GlobalErrorHandler.handleError(error, context);
+          throw error;
+        });
+      }
+
+      return result;
+    } catch (error) {
+      GlobalErrorHandler.handleError(error as Error, context);
+      throw error;
+    }
+  }) as T;
+};
+
+// React Error Boundary component
+export const createErrorBoundary = (fallbackComponent?: React.ComponentType<{ error: Error }>) => {
+  return class ErrorBoundary extends React.Component<
+    { children: React.ReactNode },
+    { hasError: boolean; error?: Error }
+  > {
+    constructor(props: { children: React.ReactNode }) {
+      super(props);
+      this.state = { hasError: false };
+    }
+
+    static getDerivedStateFromError(error: Error) {
+      return { hasError: true, error };
+    }
+
+    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+      GlobalErrorHandler.handleError(
+        new AppError(
+          error.message,
+          'REACT_ERROR',
+          500,
+          { ...errorInfo, stack: error.stack },
+          'React Component'
+        )
+      );
+    }
+
+    render() {
+      if (this.state.hasError) {
+        return React.createElement('div', {
+          style: { padding: '20px', textAlign: 'center', color: 'red' }
+        }, 'Something went wrong. Please refresh the page.');
+      }
+
+      return this.props.children;
+    }
+  };
+};
+
+// Simplified error fallback to avoid JSX parsing issues
+const DefaultErrorFallback: React.FC<{ error: Error }> = ({ error }) => {
+  return React.createElement('div', {
+    style: {
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#f9fafb',
+      padding: '20px'
+    }
+  }, React.createElement('div', {
+    style: {
+      maxWidth: '400px',
+      width: '100%',
+      backgroundColor: 'white',
+      padding: '32px',
+      borderRadius: '8px',
+      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+      textAlign: 'center'
+    }
+  }, [
+    React.createElement('h3', { key: 'title', style: { fontSize: '18px', fontWeight: '500', color: '#111827', marginBottom: '8px' } }, 'Something went wrong'),
+    React.createElement('p', { key: 'message', style: { fontSize: '14px', color: '#6b7280', marginBottom: '16px' } }, 'Please try refreshing the page.'),
+    React.createElement('button', {
+      key: 'button',
+      onClick: () => window.location.reload(),
+      style: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        padding: '8px 16px',
+        border: 'none',
+        fontSize: '14px',
+        fontWeight: '500',
+        borderRadius: '6px',
+        color: 'white',
+        backgroundColor: '#dc2626',
+        cursor: 'pointer'
+      }
+    }, 'Refresh Page')
+  ]));
+};
+
+export default GlobalErrorHandler;

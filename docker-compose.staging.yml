@@ -1,0 +1,230 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database - Staging
+  postgres:
+    image: postgres:15-alpine
+    container_name: aurum_staging_postgres
+    environment:
+      POSTGRES_DB: ${STAGING_DB_NAME:-aurum_staging}
+      POSTGRES_USER: ${STAGING_DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${STAGING_DB_PASSWORD:-staging_password}
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
+    volumes:
+      - staging_postgres_data:/var/lib/postgresql/data
+      - ./sql/init:/docker-entrypoint-initdb.d
+    ports:
+      - "${STAGING_DB_PORT:-5433}:5432"
+    networks:
+      - staging_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${STAGING_DB_USER:-postgres} -d ${STAGING_DB_NAME:-aurum_staging}"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis Cache - Staging
+  redis:
+    image: redis:7-alpine
+    container_name: aurum_staging_redis
+    command: redis-server --appendonly yes --requirepass ${STAGING_REDIS_PASSWORD:-staging_redis}
+    volumes:
+      - staging_redis_data:/data
+    ports:
+      - "${STAGING_REDIS_PORT:-6380}:6379"
+    networks:
+      - staging_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Main API Service - Staging
+  api:
+    image: ghcr.io/your-username/project-aurum:staging
+    container_name: aurum_staging_api
+    environment:
+      - ENVIRONMENT=staging
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${STAGING_DB_NAME:-aurum_staging}
+      - DB_USER=${STAGING_DB_USER:-postgres}
+      - DB_PASSWORD=${STAGING_DB_PASSWORD:-staging_password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${STAGING_REDIS_PASSWORD:-staging_redis}
+      - JWT_SECRET_KEY=${STAGING_JWT_SECRET_KEY}
+      - MARKET_TIMEZONE=Asia/Jakarta
+      - API_WORKERS=2
+      - LOG_LEVEL=DEBUG
+      - ENABLE_DEBUG_MODE=true
+      - CORS_ORIGINS=["http://localhost:3000", "https://staging.aurum-trading.com"]
+      - EMAIL_ENABLED=false
+      - TELEGRAM_ENABLED=false
+      - SMS_ENABLED=false
+      # Testing and development features
+      - ENABLE_MOCK_DATA=true
+      - ENABLE_API_DOCS=true
+      - RATE_LIMIT_ENABLED=false
+      - CACHE_TTL=300
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+      - staging_logs:/app/logs
+      - ./reports:/app/reports
+    ports:
+      - "${STAGING_API_PORT:-8001}:8000"
+    networks:
+      - staging_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Celery Worker - Staging
+  celery_worker:
+    image: ghcr.io/your-username/project-aurum:staging
+    container_name: aurum_staging_celery_worker
+    command: celery -A src.api.main:celery_app worker --loglevel=info --concurrency=1
+    environment:
+      - ENVIRONMENT=staging
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=${STAGING_DB_NAME:-aurum_staging}
+      - DB_USER=${STAGING_DB_USER:-postgres}
+      - DB_PASSWORD=${STAGING_DB_PASSWORD:-staging_password}
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=${STAGING_REDIS_PASSWORD:-staging_redis}
+      - JWT_SECRET_KEY=${STAGING_JWT_SECRET_KEY}
+      - LOG_LEVEL=DEBUG
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+      - staging_logs:/app/logs
+    networks:
+      - staging_network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Frontend - Staging
+  frontend:
+    image: ghcr.io/your-username/project-aurum-frontend:staging
+    container_name: aurum_staging_frontend
+    environment:
+      - VITE_API_URL=http://localhost:8001
+      - VITE_ENVIRONMENT=staging
+      - VITE_ENABLE_DEBUG=true
+    ports:
+      - "${STAGING_FRONTEND_PORT:-3001}:80"
+    networks:
+      - staging_network
+    depends_on:
+      - api
+    restart: unless-stopped
+
+  # Monitoring - Prometheus (Staging)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: aurum_staging_prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.staging.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=72h'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus.staging.yml:/etc/prometheus/prometheus.staging.yml
+      - staging_prometheus_data:/prometheus
+    ports:
+      - "9091:9090"
+    networks:
+      - staging_network
+    restart: unless-stopped
+
+  # Grafana - Staging
+  grafana:
+    image: grafana/grafana:latest
+    container_name: aurum_staging_grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${STAGING_GRAFANA_PASSWORD:-staging123}
+      - GF_SERVER_ROOT_URL=http://localhost:3001
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - staging_grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "3001:3000"
+    networks:
+      - staging_network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  # Load Testing (Only for staging)
+  locust:
+    image: locustio/locust:latest
+    container_name: aurum_staging_locust
+    volumes:
+      - ./tests:/mnt/locust
+    command: >
+      locust
+      -f /mnt/locust/load_tests.py
+      --host=http://api:8000
+      --web-host=0.0.0.0
+      --web-port=8089
+    ports:
+      - "8089:8089"
+    networks:
+      - staging_network
+    depends_on:
+      - api
+    restart: "no"  # Only run when needed
+
+  # Test Database for Integration Tests
+  test_postgres:
+    image: postgres:15-alpine
+    container_name: aurum_test_postgres
+    environment:
+      POSTGRES_DB: aurum_test
+      POSTGRES_USER: test_user
+      POSTGRES_PASSWORD: test_password
+    tmpfs:
+      - /var/lib/postgresql/data  # Use tmpfs for faster test execution
+    ports:
+      - "5434:5432"
+    networks:
+      - staging_network
+    restart: "no"  # Only for tests
+
+volumes:
+  staging_postgres_data:
+    driver: local
+  staging_redis_data:
+    driver: local
+  staging_prometheus_data:
+    driver: local
+  staging_grafana_data:
+    driver: local
+  staging_logs:
+    driver: local
+
+networks:
+  staging_network:
+    driver: bridge

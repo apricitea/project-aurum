@@ -1,0 +1,565 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Project Aurum - Indonesian Trading System Dashboard",
+    "tags": ["project-aurum", "indonesia", "trading", "idx"],
+    "timezone": "Asia/Jakarta",
+    "panels": [
+      {
+        "id": 1,
+        "title": "System Overview",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "project_aurum_uptime_seconds",
+            "legendFormat": "Uptime"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "s",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 3600},
+                {"color": "green", "value": 86400}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "Indonesian Market Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "idx_market_status",
+            "legendFormat": "IDX Status"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "mappings": [
+              {"options": {"0": {"text": "Pre-Market", "color": "yellow"}}, "type": "value"},
+              {"options": {"1": {"text": "Open", "color": "green"}}, "type": "value"},
+              {"options": {"2": {"text": "Closed", "color": "red"}}, "type": "value"},
+              {"options": {"3": {"text": "Break", "color": "orange"}}, "type": "value"}
+            ]
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "LQ45 Index Value",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "lq45_index_value",
+            "legendFormat": "LQ45"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 2,
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 1000},
+                {"color": "yellow", "value": 1050},
+                {"color": "green", "value": 1100}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0}
+      },
+      {
+        "id": 4,
+        "title": "IDR/USD Exchange Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "idr_usd_exchange_rate",
+            "legendFormat": "IDR/USD"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 0,
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 14000},
+                {"color": "yellow", "value": 15000},
+                {"color": "red", "value": 16000}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0}
+      },
+      {
+        "id": 5,
+        "title": "Model Performance - Accuracy",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "model_accuracy_ratio",
+            "legendFormat": "{{model_name}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0,
+            "max": 1,
+            "unit": "percentunit"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 4}
+      },
+      {
+        "id": 6,
+        "title": "Trading Signals Generated",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(trading_signals_generated_total[5m])",
+            "legendFormat": "{{signal_type}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0,
+            "unit": "short"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 4}
+      },
+      {
+        "id": 7,
+        "title": "Portfolio Value (IDR)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "portfolio_value_idr",
+            "legendFormat": "{{portfolio_type}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0,
+            "unit": "currencyIDR"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 0, "y": 12}
+      },
+      {
+        "id": 8,
+        "title": "Daily P&L (IDR)",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "trading_pnl_idr{time_period=\"daily\"}",
+            "legendFormat": "Daily P&L"
+          }
+        ],
+        "yAxes": [
+          {
+            "unit": "currencyIDR"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 8, "y": 12}
+      },
+      {
+        "id": 9,
+        "title": "Open Positions",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "open_positions_count",
+            "legendFormat": "{{position_type}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0,
+            "unit": "short"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 16, "y": 12}
+      },
+      {
+        "id": 10,
+        "title": "Model Drift Scores",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "model_drift_score",
+            "legendFormat": "{{model_name}} - {{drift_type}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0,
+            "max": 1,
+            "unit": "percentunit"
+          }
+        ],
+        "alert": {
+          "conditions": [
+            {
+              "evaluator": {
+                "params": [0.3],
+                "type": "gt"
+              },
+              "operator": {
+                "type": "and"
+              },
+              "query": {
+                "model": "",
+                "params": ["A", "5m", "now"]
+              },
+              "reducer": {
+                "type": "avg"
+              },
+              "type": "query"
+            }
+          ],
+          "executionErrorState": "alerting",
+          "frequency": "60s",
+          "handler": 1,
+          "name": "High Model Drift Alert",
+          "noDataState": "no_data",
+          "notifications": []
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 18}
+      },
+      {
+        "id": 11,
+        "title": "Prediction Latency",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(model_prediction_latency_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.50, rate(model_prediction_latency_seconds_bucket[5m]))",
+            "legendFormat": "50th percentile"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0,
+            "unit": "s"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 18}
+      },
+      {
+        "id": 12,
+        "title": "Jakarta Trading Volume",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "jakarta_trading_volume_shares",
+            "legendFormat": "{{session}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0,
+            "unit": "short"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 12, "x": 0, "y": 26}
+      },
+      {
+        "id": 13,
+        "title": "Active Alerts by Severity",
+        "type": "piechart",
+        "targets": [
+          {
+            "expr": "alerts_active_count",
+            "legendFormat": "{{severity}}"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 12, "x": 12, "y": 26}
+      },
+      {
+        "id": 14,
+        "title": "HTTP Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(http_requests_total[5m])",
+            "legendFormat": "{{method}} {{endpoint}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0,
+            "unit": "reqps"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 0, "y": 32}
+      },
+      {
+        "id": 15,
+        "title": "HTTP Request Duration",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0,
+            "unit": "s"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 8, "y": 32}
+      },
+      {
+        "id": 16,
+        "title": "System Resources",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "system_cpu_usage_percent",
+            "legendFormat": "CPU Usage %"
+          },
+          {
+            "expr": "system_memory_usage_bytes / (1024*1024*1024)",
+            "legendFormat": "Memory Usage GB"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0,
+            "unit": "percent"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 8, "x": 16, "y": 32}
+      },
+      {
+        "id": 17,
+        "title": "Indonesian Market Sectors Performance",
+        "type": "bargauge",
+        "targets": [
+          {
+            "expr": "sector_performance_ratio",
+            "legendFormat": "{{sector}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": -0.05},
+                {"color": "yellow", "value": 0},
+                {"color": "green", "value": 0.02}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 38}
+      },
+      {
+        "id": 18,
+        "title": "Risk Exposure",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "risk_exposure_ratio",
+            "legendFormat": "{{risk_type}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1,
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": 0},
+                {"color": "yellow", "value": 0.7},
+                {"color": "red", "value": 0.9}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 38}
+      },
+      {
+        "id": 19,
+        "title": "Database Performance",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(database_query_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile - {{query_type}}"
+          }
+        ],
+        "yAxes": [
+          {
+            "min": 0,
+            "unit": "s"
+          }
+        ],
+        "gridPos": {"h": 6, "w": 12, "x": 0, "y": 46}
+      },
+      {
+        "id": 20,
+        "title": "WebSocket Connections",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "websocket_connections_active",
+            "legendFormat": "{{connection_type}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "yellow", "value": 1},
+                {"color": "green", "value": 10}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 6, "w": 12, "x": 12, "y": 46}
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "refresh": "30s",
+    "schemaVersion": 27,
+    "version": 1,
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": "-- Grafana --",
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        },
+        {
+          "datasource": "prometheus",
+          "enable": true,
+          "expr": "ALERTS{alertname=~\".*Aurum.*\"}",
+          "iconColor": "red",
+          "name": "Project Aurum Alerts",
+          "titleFormat": "{{alertname}}",
+          "textFormat": "{{instance}}: {{summary}}"
+        }
+      ]
+    },
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "datasource": "prometheus",
+          "definition": "label_values(model_accuracy_ratio, model_name)",
+          "hide": 0,
+          "includeAll": true,
+          "label": "Model",
+          "multi": true,
+          "name": "model",
+          "options": [],
+          "query": "label_values(model_accuracy_ratio, model_name)",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 0,
+          "tagValuesQuery": "",
+          "tags": [],
+          "tagsQuery": "",
+          "type": "query",
+          "useTags": false
+        },
+        {
+          "current": {
+            "text": "All",
+            "value": "$__all"
+          },
+          "datasource": "prometheus",
+          "definition": "label_values(trading_signals_generated_total, stock_code)",
+          "hide": 0,
+          "includeAll": true,
+          "label": "Stock",
+          "multi": true,
+          "name": "stock",
+          "options": [],
+          "query": "label_values(trading_signals_generated_total, stock_code)",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "tagValuesQuery": "",
+          "tags": [],
+          "tagsQuery": "",
+          "type": "query",
+          "useTags": false
+        }
+      ]
+    }
+  },
+  "meta": {
+    "type": "db",
+    "canSave": true,
+    "canEdit": true,
+    "canAdmin": true,
+    "canStar": true,
+    "slug": "project-aurum-indonesian-trading-system-dashboard",
+    "url": "/d/project-aurum/project-aurum-indonesian-trading-system-dashboard",
+    "expires": "0001-01-01T00:00:00Z",
+    "created": "2024-01-20T10:00:00Z",
+    "updated": "2024-01-20T10:00:00Z",
+    "updatedBy": "admin",
+    "createdBy": "admin",
+    "version": 1,
+    "hasAcl": false,
+    "isFolder": false,
+    "folderId": 0,
+    "folderTitle": "General",
+    "folderUrl": "",
+    "provisioned": false,
+    "provisionedExternalId": ""
+  }
+}

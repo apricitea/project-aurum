@@ -1,0 +1,628 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      run_security_scan:
+        description: 'Run comprehensive security scan'
+        required: false
+        default: false
+        type: boolean
+      skip_cache:
+        description: 'Skip dependency cache'
+        required: false
+        default: false
+        type: boolean
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Fast Quality Checks (runs in parallel)
+  code-quality:
+    name: Code Quality & Linting
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install lint dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black isort flake8 mypy bandit safety pre-commit
+        pip install -r requirements-dev.txt
+
+    - name: Cache pre-commit hooks
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pre-commit
+        key: pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+    - name: Run pre-commit hooks
+      run: |
+        pre-commit run --all-files || true
+
+    - name: Python code formatting (Black)
+      run: black --check --diff src/ tests/
+
+    - name: Import sorting (isort)
+      run: isort --check-only --diff src/ tests/
+
+    - name: Linting (flake8)
+      run: flake8 src/ tests/ --max-line-length=100 --statistics
+
+    - name: Type checking (mypy)
+      run: mypy src/ --ignore-missing-imports --no-strict-optional
+      continue-on-error: true
+
+    - name: Security linting (bandit)
+      run: |
+        bandit -r src/ -f json -o bandit-report.json
+        bandit -r src/ -f txt
+
+    - name: Dependency security check
+      run: safety check --json --output safety-report.json
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-lint-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+
+  frontend-quality:
+    name: Frontend Quality & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: TypeScript type checking
+      run: npm run type-check
+
+    - name: ESLint
+      run: npm run lint
+
+    - name: Build frontend
+      run: npm run build
+      env:
+        VITE_API_URL: ${{ vars.VITE_API_URL || 'http://localhost:8000' }}
+
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: frontend-build
+        path: frontend/dist/
+        retention-days: 7
+
+  # Comprehensive Testing
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [code-quality]
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11']
+        test-type: [unit, integration, security]
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: aurum_test
+          POSTGRES_USER: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install pytest-xdist pytest-timeout
+
+    - name: Set up test environment
+      run: |
+        echo "TESTING=1" >> $GITHUB_ENV
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/aurum_test" >> $GITHUB_ENV
+        echo "REDIS_URL=redis://localhost:6379/1" >> $GITHUB_ENV
+        echo "SECRET_KEY=test-secret-key-for-ci-${{ github.run_id }}" >> $GITHUB_ENV
+        echo "LOG_LEVEL=ERROR" >> $GITHUB_ENV
+        echo "MARKET_TIMEZONE=Asia/Jakarta" >> $GITHUB_ENV
+
+    - name: Wait for services
+      run: |
+        timeout 60 bash -c 'until pg_isready -h localhost -p 5432; do sleep 1; done'
+        timeout 60 bash -c 'until redis-cli -h localhost -p 6379 ping; do sleep 1; done'
+
+    - name: Run ${{ matrix.test-type }} tests
+      run: |
+        python tests/test_runner.py --type ${{ matrix.test-type }} --verbose --parallel --timeout 300
+      timeout-minutes: 15
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results-${{ matrix.python-version }}-${{ matrix.test-type }}
+        path: |
+          htmlcov/
+          test_report.txt
+          coverage*.xml
+          pytest_cache/
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      if: matrix.test-type == 'unit'
+      with:
+        file: ./coverage_unit.xml
+        flags: backend,${{ matrix.python-version }}
+        name: backend-${{ matrix.python-version }}
+        fail_ci_if_error: false
+
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [frontend-quality]
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run tests
+      run: |
+        npm test -- --coverage --watchAll=false --testTimeout=30000
+      env:
+        CI: true
+
+    - name: Upload frontend coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./frontend/coverage/lcov.info
+        flags: frontend
+        name: frontend-tests
+        fail_ci_if_error: false
+
+  # Performance and Load Testing
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [backend-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: aurum_perf
+          POSTGRES_USER: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+        pip install locust pytest-benchmark
+
+    - name: Set up performance test environment
+      run: |
+        echo "DATABASE_URL=postgresql://postgres:postgres@localhost:5432/aurum_perf" >> $GITHUB_ENV
+        echo "REDIS_URL=redis://localhost:6379/2" >> $GITHUB_ENV
+        echo "SECRET_KEY=perf-test-key-${{ github.run_id }}" >> $GITHUB_ENV
+        echo "LOG_LEVEL=WARNING" >> $GITHUB_ENV
+
+    - name: Run performance tests
+      run: |
+        python tests/test_runner.py --type performance --verbose --benchmark
+      timeout-minutes: 20
+
+    - name: Run load tests
+      run: |
+        # Start the API in background
+        python -m uvicorn src.api.main:app --host 0.0.0.0 --port 8000 &
+        sleep 10
+
+        # Run locust load tests
+        locust -f tests/load_tests.py --headless --users 50 --spawn-rate 5 --run-time 5m --host http://localhost:8000 --html load_test_report.html
+      continue-on-error: true
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-results
+        path: |
+          benchmark_results.json
+          load_test_report.html
+          performance_report.txt
+
+  # Comprehensive Security Scanning
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [code-quality]
+    if: github.event_name == 'push' || github.event.inputs.run_security_scan == 'true'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install security tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install bandit safety semgrep pip-audit
+        pip install -r requirements.txt
+
+    - name: Run Bandit security scan
+      run: |
+        bandit -r src/ -f json -o bandit-security-report.json
+        bandit -r src/ -f txt
+
+    - name: Run Safety dependency scan
+      run: |
+        safety check --json --output safety-security-report.json
+        safety check
+
+    - name: Run pip-audit
+      run: |
+        pip-audit --format=json --output=pip-audit-report.json
+        pip-audit
+
+    - name: Run Semgrep SAST
+      run: |
+        python -m semgrep --config=auto --json --output=semgrep-report.json src/
+        python -m semgrep --config=auto src/
+      continue-on-error: true
+
+    - name: Setup Node.js for frontend security scan
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install npm-audit
+      run: |
+        cd frontend
+        npm ci
+        npm audit --audit-level=moderate --json > npm-audit-report.json || true
+        npm audit --audit-level=moderate
+
+    - name: Run OWASP ZAP Baseline Scan
+      uses: zaproxy/action-baseline@v0.10.0
+      if: github.event_name == 'push'
+      with:
+        target: 'http://localhost:8000'
+        rules_file_name: '.zap/rules.tsv'
+        cmd_options: '-a'
+      continue-on-error: true
+
+    - name: Upload security scan results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-scan-results
+        path: |
+          bandit-security-report.json
+          safety-security-report.json
+          pip-audit-report.json
+          semgrep-report.json
+          frontend/npm-audit-report.json
+          zap_baseline_report.html
+
+  # Container Security and Build
+  container-security:
+    name: Container Security & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: [backend-tests, frontend-tests]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=sha,prefix={{branch}}-
+          type=raw,value=latest,enable={{is_default_branch}}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        target: production
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+        platforms: linux/amd64,linux/arm64
+
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Container structure test
+      run: |
+        docker run --rm -i -v /var/run/docker.sock:/var/run/docker.sock \
+          -v "$(pwd)":/workspace \
+          gcr.io/gcp-runtimes/container-structure-test:latest \
+          test --image ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+          --config /workspace/.github/container-structure-test.yaml
+      continue-on-error: true
+
+  # Indonesian Market Specific Tests
+  indonesian-market-tests:
+    name: Indonesian Market Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [backend-tests]
+    if: github.event_name == 'push'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Set Jakarta timezone for tests
+      run: |
+        echo "TZ=Asia/Jakarta" >> $GITHUB_ENV
+        echo "MARKET_TIMEZONE=Asia/Jakarta" >> $GITHUB_ENV
+        echo "TESTING=1" >> $GITHUB_ENV
+
+    - name: Run Indonesian market-specific tests
+      run: |
+        python tests/test_runner.py --type indonesian --verbose --timezone Asia/Jakarta
+
+    - name: Test market hours logic
+      run: |
+        python -c "
+        from src.core.market_hours import is_market_open
+        from datetime import datetime
+        import pytz
+
+        jkt_tz = pytz.timezone('Asia/Jakarta')
+        now = datetime.now(jkt_tz)
+        print(f'Current Jakarta time: {now}')
+        print(f'Market open: {is_market_open(now)}')
+        "
+
+    - name: Upload Indonesian market test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: indonesian-market-test-results
+        path: |
+          test_report.txt
+          market_hours_test.log
+
+  # Integration Tests with External APIs
+  external-api-tests:
+    name: External API Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [backend-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Test external API connections
+      run: |
+        python tests/test_runner.py --type external_api --verbose --timeout 600
+      env:
+        ALPHA_VANTAGE_API_KEY: ${{ secrets.ALPHA_VANTAGE_API_KEY }}
+        YAHOO_FINANCE_ENABLED: true
+      continue-on-error: true
+
+    - name: Upload external API test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: external-api-test-results
+        path: test_report.txt
+
+  # Final Status Check
+  ci-status:
+    name: CI Status
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs:
+      - code-quality
+      - frontend-quality
+      - backend-tests
+      - frontend-tests
+      - security-scan
+      - container-security
+      - indonesian-market-tests
+    if: always()
+
+    steps:
+    - name: Check CI results
+      run: |
+        echo "CI Pipeline Results:"
+        echo "Code Quality: ${{ needs.code-quality.result }}"
+        echo "Frontend Quality: ${{ needs.frontend-quality.result }}"
+        echo "Backend Tests: ${{ needs.backend-tests.result }}"
+        echo "Frontend Tests: ${{ needs.frontend-tests.result }}"
+        echo "Security Scan: ${{ needs.security-scan.result }}"
+        echo "Container Security: ${{ needs.container-security.result }}"
+        echo "Indonesian Market Tests: ${{ needs.indonesian-market-tests.result }}"
+
+        # Fail if critical jobs failed
+        if [[ "${{ needs.code-quality.result }}" == "failure" ||
+              "${{ needs.backend-tests.result }}" == "failure" ||
+              "${{ needs.frontend-tests.result }}" == "failure" ]]; then
+          echo "Critical CI jobs failed!"
+          exit 1
+        fi
+
+        echo "CI Pipeline completed successfully!"
+
+    - name: Send notification on failure
+      if: failure()
+      run: |
+        echo "CI Pipeline failed. Notification would be sent to development team."
+        # Add actual notification logic here (Slack, Teams, etc.)

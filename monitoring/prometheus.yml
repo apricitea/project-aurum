@@ -1,0 +1,284 @@
+# Prometheus configuration for Project Aurum
+# Indonesian stock market trading system monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'project-aurum'
+    market: 'IDX'
+    timezone: 'Asia/Jakarta'
+
+rule_files:
+  - "alert_rules.yml"
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+scrape_configs:
+  # Project Aurum main application metrics
+  - job_name: 'project-aurum-api'
+    static_configs:
+      - targets: ['aurum-api:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+    scrape_timeout: 10s
+    params:
+      format: ['prometheus']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'project_aurum.*'
+        target_label: 'service'
+        replacement: 'aurum-api'
+
+  # Custom metrics exporter for Indonesian market data
+  - job_name: 'aurum-metrics-exporter'
+    static_configs:
+      - targets: ['aurum-metrics-exporter:8001']
+    scrape_interval: 60s
+    scrape_timeout: 30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'idx_.*|lq45_.*|rupiah_.*'
+        target_label: 'market_type'
+        replacement: 'indonesian'
+
+  # System metrics via node exporter
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'node_(cpu|memory|disk|network).*'
+        target_label: 'metric_type'
+        replacement: 'system'
+
+  # PostgreSQL database metrics
+  - job_name: 'postgres-exporter'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+    scrape_interval: 30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'pg_.*'
+        target_label: 'database'
+        replacement: 'postgresql'
+
+  # Redis cache metrics
+  - job_name: 'redis-exporter'
+    static_configs:
+      - targets: ['redis-exporter:9121']
+    scrape_interval: 30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'redis_.*'
+        target_label: 'cache'
+        replacement: 'redis'
+
+  # Blackbox exporter for endpoint monitoring
+  - job_name: 'blackbox-http'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - http://aurum-api:8000/health
+        - http://aurum-frontend:3000
+        - http://grafana:3000
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+
+  # Blackbox exporter for Indonesian market data feeds
+  - job_name: 'blackbox-idx-feeds'
+    metrics_path: /probe
+    params:
+      module: [http_2xx]
+    static_configs:
+      - targets:
+        - https://www.idx.co.id
+        - https://finance.yahoo.com/quote/^JKSE
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: __param_target
+      - source_labels: [__param_target]
+        target_label: instance
+      - target_label: __address__
+        replacement: blackbox-exporter:9115
+      - target_label: job
+        replacement: 'idx-market-feeds'
+
+  # Traefik reverse proxy metrics
+  - job_name: 'traefik'
+    static_configs:
+      - targets: ['traefik:8080']
+    metrics_path: '/metrics'
+    scrape_interval: 30s
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+    scrape_interval: 30s
+
+  # AlertManager metrics
+  - job_name: 'alertmanager'
+    static_configs:
+      - targets: ['alertmanager:9093']
+    scrape_interval: 30s
+
+  # Grafana metrics
+  - job_name: 'grafana'
+    static_configs:
+      - targets: ['grafana:3000']
+    metrics_path: '/metrics'
+    scrape_interval: 60s
+
+  # Loki metrics
+  - job_name: 'loki'
+    static_configs:
+      - targets: ['loki:3100']
+    metrics_path: '/metrics'
+    scrape_interval: 60s
+
+  # Indonesian market trading session monitoring
+  - job_name: 'idx-trading-session'
+    static_configs:
+      - targets: ['aurum-api:8000']
+    metrics_path: '/monitoring/session-metrics'
+    scrape_interval: 300s  # Every 5 minutes
+    params:
+      session: ['current']
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'trading_session_.*'
+        target_label: 'session_type'
+        replacement: 'idx'
+
+# Indonesian market specific scraping configuration
+# Scrape more frequently during trading hours (09:00-15:49 WIB)
+  - job_name: 'aurum-trading-hours'
+    static_configs:
+      - targets: ['aurum-api:8000']
+    metrics_path: '/metrics'
+    scrape_interval: 10s  # More frequent during trading
+    scrape_timeout: 5s
+    # This would ideally be configured with time-based rules
+    # For demo purposes, using static config
+
+# Model performance monitoring - higher frequency for critical models
+  - job_name: 'aurum-models-critical'
+    static_configs:
+      - targets: ['aurum-api:8000']
+    metrics_path: '/monitoring/models/critical'
+    scrape_interval: 60s
+    params:
+      models: ['lq45_ensemble', 'momentum_predictor']
+    metric_relabel_configs:
+      - source_labels: [model_name]
+        regex: '(lq45_ensemble|momentum_predictor)'
+        target_label: 'priority'
+        replacement: 'critical'
+
+# Model drift detection metrics
+  - job_name: 'aurum-drift-detection'
+    static_configs:
+      - targets: ['aurum-api:8000']
+    metrics_path: '/monitoring/drift'
+    scrape_interval: 300s  # Every 5 minutes
+    scrape_timeout: 30s
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'model_drift_.*'
+        target_label: 'monitoring_type'
+        replacement: 'drift_detection'
+
+# Business metrics - portfolio and P&L monitoring
+  - job_name: 'aurum-business-metrics'
+    static_configs:
+      - targets: ['aurum-api:8000']
+    metrics_path: '/monitoring/business'
+    scrape_interval: 120s  # Every 2 minutes
+    metric_relabel_configs:
+      - source_labels: [__name__]
+        regex: 'portfolio_.*|trading_pnl_.*|risk_.*'
+        target_label: 'metric_category'
+        replacement: 'business'
+
+# Storage configuration
+storage:
+  tsdb:
+    path: /prometheus
+    retention.time: 30d
+    retention.size: 10GB
+    # Optimize for Indonesian market data patterns
+    min-block-duration: 2h
+    max-block-duration: 12h
+    wal-compression: true
+
+# Recording rules for aggregated metrics
+recording_rules:
+  - name: "project_aurum_aggregations"
+    interval: 60s
+    rules:
+      # Model performance aggregations
+      - record: aurum:model_accuracy:avg_5m
+        expr: avg_over_time(model_accuracy_ratio[5m])
+        labels:
+          aggregation: "5m_avg"
+
+      - record: aurum:trading_signals:rate_1h
+        expr: rate(trading_signals_generated_total[1h])
+        labels:
+          aggregation: "1h_rate"
+
+      # Indonesian market specific aggregations
+      - record: aurum:lq45_volume:sum_1h
+        expr: sum(rate(jakarta_trading_volume_shares[1h]))
+        labels:
+          market: "LQ45"
+          aggregation: "1h_sum"
+
+      # Business performance aggregations
+      - record: aurum:daily_pnl:total
+        expr: sum(trading_pnl_idr{time_period="daily"}) by (strategy)
+        labels:
+          currency: "IDR"
+          period: "daily"
+
+      # System health aggregations
+      - record: aurum:api_success_rate:5m
+        expr: |
+          (
+            rate(http_requests_total{status=~"2.."}[5m]) /
+            rate(http_requests_total[5m])
+          ) * 100
+        labels:
+          aggregation: "5m_rate"
+          metric_type: "health"
+
+# Remote write configuration for long-term storage (optional)
+# remote_write:
+#   - url: "https://prometheus-prod-10-prod-us-central-1.grafana.net/api/prom/push"
+#     basic_auth:
+#       username: "your_username"
+#       password: "your_api_key"
+#     write_relabel_configs:
+#       - source_labels: [__name__]
+#         regex: 'aurum:.*|project_aurum.*'
+#         action: keep
+
+# Remote read configuration (optional)
+# remote_read:
+#   - url: "https://prometheus-prod-10-prod-us-central-1.grafana.net/api/prom/read"
+#     basic_auth:
+#       username: "your_username"
+#       password: "your_api_key"

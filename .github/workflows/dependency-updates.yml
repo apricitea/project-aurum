@@ -1,0 +1,606 @@
+name: Dependency Updates & Security Patches
+
+on:
+  schedule:
+    # Run every Monday at 6 AM UTC (1 PM Jakarta time)
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+    inputs:
+      update_type:
+        description: 'Type of updates to perform'
+        required: true
+        default: 'security'
+        type: choice
+        options:
+        - security
+        - minor
+        - major
+        - all
+      create_pr:
+        description: 'Create pull request for updates'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '18'
+
+jobs:
+  # Security vulnerability scanning and patching
+  security-audit:
+    name: Security Audit & Patches
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    outputs:
+      python_updates: ${{ steps.python_scan.outputs.updates_available }}
+      npm_updates: ${{ steps.npm_scan.outputs.updates_available }}
+      critical_vulnerabilities: ${{ steps.audit.outputs.critical_count }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+
+    - name: Install security tools
+      run: |
+        pip install safety pip-audit pipenv-audit
+        npm install -g npm-audit-fix npm-audit
+
+    - name: Python security audit
+      id: python_scan
+      run: |
+        echo "🔍 Scanning Python dependencies for vulnerabilities..."
+
+        # Check with safety
+        safety check --json --output safety-report.json || SAFETY_EXIT=$?
+
+        # Check with pip-audit
+        pip-audit --format=json --output=pip-audit-report.json || AUDIT_EXIT=$?
+
+        # Count vulnerabilities
+        SAFETY_VULNS=$(cat safety-report.json | jq '.vulnerabilities | length' 2>/dev/null || echo "0")
+        AUDIT_VULNS=$(cat pip-audit-report.json | jq '.vulnerabilities | length' 2>/dev/null || echo "0")
+
+        echo "safety_vulnerabilities=$SAFETY_VULNS" >> $GITHUB_OUTPUT
+        echo "audit_vulnerabilities=$AUDIT_VULNS" >> $GITHUB_OUTPUT
+
+        if [[ $SAFETY_VULNS -gt 0 || $AUDIT_VULNS -gt 0 ]]; then
+          echo "updates_available=true" >> $GITHUB_OUTPUT
+        else
+          echo "updates_available=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Node.js security audit
+      id: npm_scan
+      run: |
+        echo "🔍 Scanning Node.js dependencies for vulnerabilities..."
+
+        cd frontend
+
+        # Run npm audit
+        npm audit --json > npm-audit-report.json || true
+
+        # Count vulnerabilities by severity
+        HIGH_VULNS=$(cat npm-audit-report.json | jq '.metadata.vulnerabilities.high // 0')
+        CRITICAL_VULNS=$(cat npm-audit-report.json | jq '.metadata.vulnerabilities.critical // 0')
+
+        echo "high_vulnerabilities=$HIGH_VULNS" >> $GITHUB_OUTPUT
+        echo "critical_vulnerabilities=$CRITICAL_VULNS" >> $GITHUB_OUTPUT
+
+        if [[ $HIGH_VULNS -gt 0 || $CRITICAL_VULNS -gt 0 ]]; then
+          echo "updates_available=true" >> $GITHUB_OUTPUT
+        else
+          echo "updates_available=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Aggregate audit results
+      id: audit
+      run: |
+        PYTHON_VULNS=$((${{ steps.python_scan.outputs.safety_vulnerabilities }} + ${{ steps.python_scan.outputs.audit_vulnerabilities }}))
+        NODE_CRITICAL=${{ steps.npm_scan.outputs.critical_vulnerabilities }}
+        NODE_HIGH=${{ steps.npm_scan.outputs.high_vulnerabilities }}
+
+        TOTAL_CRITICAL=$((NODE_CRITICAL))
+        TOTAL_HIGH=$((NODE_HIGH + PYTHON_VULNS))
+
+        echo "critical_count=$TOTAL_CRITICAL" >> $GITHUB_OUTPUT
+        echo "high_count=$TOTAL_HIGH" >> $GITHUB_OUTPUT
+
+        echo "📊 Security Audit Summary:"
+        echo "- Python vulnerabilities: $PYTHON_VULNS"
+        echo "- Node.js critical: $NODE_CRITICAL"
+        echo "- Node.js high: $NODE_HIGH"
+
+    - name: Upload security reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-audit-reports
+        path: |
+          safety-report.json
+          pip-audit-report.json
+          frontend/npm-audit-report.json
+
+  # Python dependency updates
+  python-updates:
+    name: Python Dependency Updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [security-audit]
+    if: needs.security-audit.outputs.python_updates == 'true' || github.event.inputs.update_type != 'security'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Install update tools
+      run: |
+        pip install pip-tools pur pipupgrade
+
+    - name: Create backup of requirements
+      run: |
+        cp requirements.txt requirements.txt.backup
+        cp requirements-dev.txt requirements-dev.txt.backup
+
+    - name: Update Python dependencies
+      run: |
+        echo "🔄 Updating Python dependencies..."
+
+        # Determine update strategy based on input
+        UPDATE_TYPE="${{ github.event.inputs.update_type || 'security' }}"
+
+        case $UPDATE_TYPE in
+          "security")
+            echo "Applying security updates only..."
+            # Use pur to update to latest compatible versions
+            pur -r requirements.txt --only-security || true
+            pur -r requirements-dev.txt --only-security || true
+            ;;
+          "minor")
+            echo "Applying minor updates..."
+            pur -r requirements.txt --minor || true
+            pur -r requirements-dev.txt --minor || true
+            ;;
+          "major"|"all")
+            echo "Applying all available updates..."
+            pur -r requirements.txt || true
+            pur -r requirements-dev.txt || true
+            ;;
+        esac
+
+    - name: Test updated dependencies
+      run: |
+        echo "🧪 Testing updated dependencies..."
+
+        # Create virtual environment and test installation
+        python -m venv test_env
+        source test_env/bin/activate
+
+        # Install updated requirements
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+        # Quick import test for critical modules
+        python -c "
+        import fastapi
+        import uvicorn
+        import sqlalchemy
+        import redis
+        import pandas
+        import numpy
+        import sklearn
+        print('✅ All critical modules import successfully')
+        "
+
+        deactivate
+        rm -rf test_env
+
+    - name: Generate dependency changes report
+      run: |
+        echo "📋 Generating dependency changes report..."
+
+        # Compare old vs new requirements
+        cat > dependency_changes.md << 'EOF'
+        # Python Dependency Updates Report
+
+        ## Changes Made
+
+        ### requirements.txt
+        ```diff
+        EOF
+
+        diff -u requirements.txt.backup requirements.txt >> dependency_changes.md || true
+
+        cat >> dependency_changes.md << 'EOF'
+        ```
+
+        ### requirements-dev.txt
+        ```diff
+        EOF
+
+        diff -u requirements-dev.txt.backup requirements-dev.txt >> dependency_changes.md || true
+
+        cat >> dependency_changes.md << 'EOF'
+        ```
+
+        ## Security Impact
+        - Update Type: ${{ github.event.inputs.update_type || 'security' }}
+        - Python Vulnerabilities Addressed: ${{ needs.security-audit.outputs.python_updates }}
+
+        ## Testing Status
+        - [x] Dependencies install successfully
+        - [x] Critical modules import without errors
+        - [ ] Full test suite (will run in CI)
+
+        EOF
+
+    - name: Upload Python update artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: python-dependency-updates
+        path: |
+          requirements.txt
+          requirements-dev.txt
+          dependency_changes.md
+          requirements.txt.backup
+          requirements-dev.txt.backup
+
+  # Node.js dependency updates
+  nodejs-updates:
+    name: Node.js Dependency Updates
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [security-audit]
+    if: needs.security-audit.outputs.npm_updates == 'true' || github.event.inputs.update_type != 'security'
+    defaults:
+      run:
+        working-directory: ./frontend
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Create backup of package files
+      run: |
+        cp package.json package.json.backup
+        cp package-lock.json package-lock.json.backup
+
+    - name: Update Node.js dependencies
+      run: |
+        echo "🔄 Updating Node.js dependencies..."
+
+        UPDATE_TYPE="${{ github.event.inputs.update_type || 'security' }}"
+
+        case $UPDATE_TYPE in
+          "security")
+            echo "Applying security updates only..."
+            # Fix known vulnerabilities
+            npm audit fix --audit-level moderate || true
+            ;;
+          "minor")
+            echo "Applying minor updates..."
+            # Update to latest minor versions
+            npm update --save || true
+            npm update --save-dev || true
+            ;;
+          "major"|"all")
+            echo "Applying all available updates..."
+            # Install npm-check-updates for major version updates
+            npm install -g npm-check-updates
+            ncu -u
+            npm install
+            ;;
+        esac
+
+    - name: Test updated frontend
+      run: |
+        echo "🧪 Testing updated frontend dependencies..."
+
+        # Install dependencies
+        npm ci
+
+        # Type checking
+        npm run type-check
+
+        # Linting
+        npm run lint
+
+        # Build test
+        npm run build
+
+        echo "✅ Frontend builds successfully with updated dependencies"
+
+    - name: Generate Node.js changes report
+      run: |
+        echo "📋 Generating Node.js dependency changes report..."
+
+        cat > nodejs_changes.md << 'EOF'
+        # Node.js Dependency Updates Report
+
+        ## Changes Made
+
+        ### package.json
+        ```diff
+        EOF
+
+        diff -u package.json.backup package.json >> nodejs_changes.md || true
+
+        cat >> nodejs_changes.md << 'EOF'
+        ```
+
+        ## Security Impact
+        - Update Type: ${{ github.event.inputs.update_type || 'security' }}
+        - High/Critical Vulnerabilities Addressed: ${{ needs.security-audit.outputs.npm_updates }}
+
+        ## Testing Status
+        - [x] Dependencies install successfully
+        - [x] TypeScript compilation passes
+        - [x] ESLint passes
+        - [x] Build completes successfully
+        - [ ] Full test suite (will run in CI)
+
+        EOF
+
+    - name: Upload Node.js update artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: nodejs-dependency-updates
+        path: |
+          frontend/package.json
+          frontend/package-lock.json
+          frontend/nodejs_changes.md
+          frontend/package.json.backup
+          frontend/package-lock.json.backup
+
+  # Create pull request for updates
+  create-update-pr:
+    name: Create Update Pull Request
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: [security-audit, python-updates, nodejs-updates]
+    if: |
+      always() &&
+      (needs.python-updates.result == 'success' || needs.nodejs-updates.result == 'success') &&
+      (github.event.inputs.create_pr != 'false')
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Download update artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: ./updates
+
+    - name: Apply dependency updates
+      run: |
+        echo "📦 Applying dependency updates..."
+
+        # Apply Python updates if available
+        if [[ -f "updates/python-dependency-updates/requirements.txt" ]]; then
+          cp updates/python-dependency-updates/requirements.txt .
+          cp updates/python-dependency-updates/requirements-dev.txt .
+          echo "✅ Applied Python updates"
+        fi
+
+        # Apply Node.js updates if available
+        if [[ -f "updates/nodejs-dependency-updates/package.json" ]]; then
+          cp updates/nodejs-dependency-updates/package.json frontend/
+          cp updates/nodejs-dependency-updates/package-lock.json frontend/
+          echo "✅ Applied Node.js updates"
+        fi
+
+    - name: Create comprehensive update report
+      run: |
+        echo "📋 Creating comprehensive update report..."
+
+        cat > DEPENDENCY_UPDATE_REPORT.md << 'EOF'
+        # Dependency Security Updates
+
+        ## Summary
+        - **Update Type**: ${{ github.event.inputs.update_type || 'security' }}
+        - **Date**: $(date -u +'%Y-%m-%d %H:%M:%S UTC')
+        - **Critical Vulnerabilities**: ${{ needs.security-audit.outputs.critical_vulnerabilities }}
+
+        ## Security Impact
+        This update addresses the following security concerns:
+        - Python package vulnerabilities
+        - Node.js package vulnerabilities
+        - Known CVEs in dependencies
+
+        ## What's Changed
+        EOF
+
+        # Append Python changes if available
+        if [[ -f "updates/python-dependency-updates/dependency_changes.md" ]]; then
+          cat updates/python-dependency-updates/dependency_changes.md >> DEPENDENCY_UPDATE_REPORT.md
+        fi
+
+        # Append Node.js changes if available
+        if [[ -f "updates/nodejs-dependency-updates/nodejs_changes.md" ]]; then
+          cat updates/nodejs-dependency-updates/nodejs_changes.md >> DEPENDENCY_UPDATE_REPORT.md
+        fi
+
+        cat >> DEPENDENCY_UPDATE_REPORT.md << 'EOF'
+
+        ## Testing Required
+        - [ ] All existing tests pass
+        - [ ] Security vulnerabilities resolved
+        - [ ] No breaking changes introduced
+        - [ ] Performance impact assessed
+
+        ## Deployment Notes
+        - This update should be deployed during off-market hours
+        - Monitor application performance post-deployment
+        - Have rollback plan ready
+
+        ---
+        *This PR was automatically created by the dependency update workflow*
+        EOF
+
+    - name: Configure Git
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+
+    - name: Create update branch and commit
+      run: |
+        # Create branch name based on update type and date
+        BRANCH_NAME="dependency-updates/$(date +'%Y-%m-%d')-${{ github.event.inputs.update_type || 'security' }}"
+
+        git checkout -b "$BRANCH_NAME"
+
+        # Add all updated files
+        git add requirements*.txt frontend/package*.json DEPENDENCY_UPDATE_REPORT.md
+
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No dependency changes to commit"
+          exit 0
+        fi
+
+        # Commit changes
+        git commit -m "chore: update dependencies (${{ github.event.inputs.update_type || 'security' }})
+
+        - Update Python dependencies for security patches
+        - Update Node.js dependencies for security patches
+        - Address ${{ needs.security-audit.outputs.critical_vulnerabilities }} critical vulnerabilities
+
+        🤖 Generated with [Claude Code](https://claude.ai/code)
+
+        Co-Authored-By: Claude <noreply@anthropic.com>"
+
+        # Push branch
+        git push origin "$BRANCH_NAME"
+
+        echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
+
+    - name: Create Pull Request
+      run: |
+        # Create PR using GitHub CLI
+        gh pr create \
+          --title "🔒 Security: Dependency Updates (${{ github.event.inputs.update_type || 'security' }})" \
+          --body "$(cat <<'EOF'
+        ## 🔒 Automated Dependency Security Updates
+
+        This PR contains automated dependency updates to address security vulnerabilities and keep dependencies current.
+
+        ### 📊 Security Summary
+        - **Critical Vulnerabilities**: ${{ needs.security-audit.outputs.critical_vulnerabilities }}
+        - **Update Type**: ${{ github.event.inputs.update_type || 'security' }}
+        - **Target**: Security patches and compatible updates
+
+        ### 🧪 Testing Checklist
+        - [x] Dependencies install successfully
+        - [x] Basic functionality tests pass
+        - [ ] Full CI/CD pipeline validation
+        - [ ] Security scan verification
+
+        ### 🚀 Deployment Guidelines
+        - Deploy during off-market hours (outside 9:00-16:00 WIB)
+        - Monitor system performance for 30 minutes post-deployment
+        - Have rollback plan ready
+
+        ### 📋 Review Required
+        - Verify no breaking changes in major version updates
+        - Confirm security vulnerabilities are resolved
+        - Test critical trading functionality
+
+        🤖 This PR was automatically generated by the dependency update workflow.
+
+        🤖 Generated with [Claude Code](https://claude.ai/code)
+        EOF
+        )" \
+          --label "dependencies,security,automated" \
+          --assignee "${{ github.actor }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Add security labels and reviewers
+      run: |
+        # Add additional labels based on criticality
+        if [[ "${{ needs.security-audit.outputs.critical_vulnerabilities }}" -gt "0" ]]; then
+          gh pr edit --add-label "priority:high,security:critical"
+        fi
+
+        # Request reviews from security team (if configured)
+        # gh pr edit --add-reviewer "security-team"
+
+        echo "✅ Pull request created successfully"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Emergency security patch workflow
+  emergency-patch:
+    name: Emergency Security Patch
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: [security-audit]
+    if: needs.security-audit.outputs.critical_vulnerabilities > 0 && github.event_name == 'schedule'
+
+    steps:
+    - name: Send critical vulnerability alert
+      run: |
+        echo "🚨 CRITICAL SECURITY ALERT 🚨"
+        echo "Critical vulnerabilities detected: ${{ needs.security-audit.outputs.critical_vulnerabilities }}"
+        echo "Immediate attention required!"
+
+        # Here you would integrate with your alerting system
+        # Examples: Slack, PagerDuty, email, etc.
+
+    - name: Create emergency issue
+      run: |
+        gh issue create \
+          --title "🚨 CRITICAL: Security vulnerabilities detected" \
+          --body "## 🚨 Critical Security Alert
+
+        **Critical Vulnerabilities Detected**: ${{ needs.security-audit.outputs.critical_vulnerabilities }}
+
+        ### Immediate Actions Required:
+        1. Review security audit reports
+        2. Apply emergency patches
+        3. Deploy fixes during next maintenance window
+        4. Verify vulnerability resolution
+
+        ### Files to Review:
+        - Python dependencies: requirements.txt, requirements-dev.txt
+        - Node.js dependencies: frontend/package.json
+
+        **This issue was automatically created by the security audit workflow.**
+        " \
+          --label "security,critical,priority:urgent" \
+          --assignee "${{ github.actor }}"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

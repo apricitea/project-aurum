@@ -1,0 +1,100 @@
+schemaVersion: '2.0.0'
+
+# Container structure tests for Project Aurum
+commandTests:
+  - name: "Python version check"
+    command: "python"
+    args: ["--version"]
+    expectedOutput: ["Python 3.11.*"]
+
+  - name: "Check if uvicorn is installed"
+    command: "uvicorn"
+    args: ["--version"]
+    exitCode: 0
+
+  - name: "Check if gunicorn is installed"
+    command: "gunicorn"
+    args: ["--version"]
+    exitCode: 0
+
+  - name: "Verify FastAPI can import"
+    command: "python"
+    args: ["-c", "import fastapi; print('FastAPI version:', fastapi.__version__)"]
+    exitCode: 0
+
+  - name: "Check application structure"
+    command: "ls"
+    args: ["-la", "/app/src"]
+    exitCode: 0
+
+  - name: "Verify health check script exists"
+    command: "ls"
+    args: ["/app/healthcheck.py"]
+    exitCode: 0
+
+  - name: "Test health check script"
+    command: "python"
+    args: ["/app/healthcheck.py", "--test"]
+    exitCode: 0
+
+  - name: "Check database connectivity tools"
+    command: "pg_isready"
+    args: ["--version"]
+    exitCode: 0
+
+  - name: "Check Redis tools"
+    command: "redis-cli"
+    args: ["--version"]
+    exitCode: 0
+
+fileExistenceTests:
+  - name: 'Application entry point'
+    path: '/app/src/api/main.py'
+    shouldExist: true
+
+  - name: 'Health check script'
+    path: '/app/healthcheck.py'
+    shouldExist: true
+
+  - name: 'Application requirements'
+    path: '/app/requirements.txt'
+    shouldExist: true
+
+  - name: 'Application user home directory'
+    path: '/home/appuser'
+    shouldExist: true
+
+  - name: 'Application data directory'
+    path: '/app/data'
+    shouldExist: true
+
+  - name: 'Application logs directory'
+    path: '/app/logs'
+    shouldExist: true
+
+  - name: 'Application models directory'
+    path: '/app/models'
+    shouldExist: true
+
+fileContentTests:
+  - name: 'Check Python version in Python executable'
+    path: '/usr/local/bin/python'
+    expectedContents: ['.*']
+
+  - name: 'Non-root user configured'
+    path: '/etc/passwd'
+    expectedContents: ['appuser:.*']
+
+metadataTests:
+  - key: 'ExposedPorts'
+    value: '8000/tcp'
+
+  - key: 'User'
+    value: 'appuser'
+
+  - key: 'WorkingDir'
+    value: '/app'
+
+licenseTests:
+  - debian: true
+    files: ["/usr/share/doc/*/copyright"]
