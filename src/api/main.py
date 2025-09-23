@@ -19,13 +19,13 @@ import logging
 from contextlib import asynccontextmanager
 import os
 
-from auth import AuthManager, get_current_user, User
-from database import DatabaseManager, get_db
-from alert_engine import AlertEngine
-from signal_service import SignalService
-from risk_monitor import RiskMonitor
-from schemas import *
-from config import settings
+from src.api.auth import AuthManager, get_current_user, User
+from src.api.database import DatabaseManager, get_db
+from src.api.alert_engine import AlertEngine
+from src.api.signal_service import SignalService
+from src.api.risk_monitor import RiskMonitor
+from src.api.schemas import *
+from src.api.config import settings
 
 # Configure logging
 logging.basicConfig(

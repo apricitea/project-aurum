@@ -77,8 +77,8 @@ RUN mkdir -p logs data reports backups && \
     chown -R appuser:appuser /app
 
 # Health check script
-COPY healthcheck.py ./
-RUN chown appuser:appuser healthcheck.py
+COPY health_check.py ./
+RUN chown appuser:appuser health_check.py
 
 USER appuser
 
@@ -87,7 +87,7 @@ EXPOSE 8000
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-    CMD python healthcheck.py || exit 1
+    CMD python health_check.py || exit 1
 
 # Production command
 CMD ["gunicorn", "src.api.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000", "--timeout", "120", "--keep-alive", "2"]
