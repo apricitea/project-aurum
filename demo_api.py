@@ -226,126 +226,139 @@ async def get_portfolio_summary(current_user: dict = Depends(get_current_user)):
 
 @app.get("/portfolio/positions")
 async def get_positions(current_user: dict = Depends(get_current_user)):
+    from indonesian_stocks_data import indonesian_data
+
+    # Get current Indonesian stock prices for accurate data
     return [
         {
             "id": 1,
             "stock_code": "BBCA",
             "company_name": "Bank Central Asia Tbk",
-            "shares": 1000,
+            "quantity": 1000,
             "average_price": 9200,
-            "current_price": 9750,
-            "market_value": 9750000,
-            "pnl": 550000,
-            "pnl_percent": 5.98,
-            "sector": "Banking"
+            "current_price": indonesian_data.get_current_price("BBCA"),
+            "market_value": indonesian_data.get_current_price("BBCA") * 1000,
+            "unrealized_pnl": (indonesian_data.get_current_price("BBCA") - 9200) * 1000,
+            "unrealized_pnl_percent": ((indonesian_data.get_current_price("BBCA") - 9200) / 9200) * 100,
+            "sector": "Banking",
+            "last_updated": datetime.now().isoformat()
         },
         {
             "id": 2,
             "stock_code": "TLKM",
             "company_name": "Telkom Indonesia Tbk",
-            "shares": 2000,
+            "quantity": 2000,
             "average_price": 3800,
-            "current_price": 4100,
-            "market_value": 8200000,
-            "pnl": 600000,
-            "pnl_percent": 7.89,
-            "sector": "Telecommunications"
+            "current_price": indonesian_data.get_current_price("TLKM"),
+            "market_value": indonesian_data.get_current_price("TLKM") * 2000,
+            "unrealized_pnl": (indonesian_data.get_current_price("TLKM") - 3800) * 2000,
+            "unrealized_pnl_percent": ((indonesian_data.get_current_price("TLKM") - 3800) / 3800) * 100,
+            "sector": "Telecommunications",
+            "last_updated": datetime.now().isoformat()
         },
         {
             "id": 3,
             "stock_code": "ASII",
             "company_name": "Astra International Tbk",
-            "shares": 500,
+            "quantity": 500,
             "average_price": 6200,
-            "current_price": 6500,
-            "market_value": 3250000,
-            "pnl": 150000,
-            "pnl_percent": 4.84,
-            "sector": "Automotive"
+            "current_price": indonesian_data.get_current_price("ASII"),
+            "market_value": indonesian_data.get_current_price("ASII") * 500,
+            "unrealized_pnl": (indonesian_data.get_current_price("ASII") - 6200) * 500,
+            "unrealized_pnl_percent": ((indonesian_data.get_current_price("ASII") - 6200) / 6200) * 100,
+            "sector": "Automotive",
+            "last_updated": datetime.now().isoformat()
         },
         {
             "id": 4,
             "stock_code": "UNVR",
             "company_name": "Unilever Indonesia Tbk",
-            "shares": 1500,
+            "quantity": 1500,
             "average_price": 2500,
-            "current_price": 2680,
-            "market_value": 4020000,
-            "pnl": 270000,
-            "pnl_percent": 7.20,
-            "sector": "Consumer Goods"
+            "current_price": indonesian_data.get_current_price("UNVR"),
+            "market_value": indonesian_data.get_current_price("UNVR") * 1500,
+            "unrealized_pnl": (indonesian_data.get_current_price("UNVR") - 2500) * 1500,
+            "unrealized_pnl_percent": ((indonesian_data.get_current_price("UNVR") - 2500) / 2500) * 100,
+            "sector": "Consumer Goods",
+            "last_updated": datetime.now().isoformat()
         },
         {
             "id": 5,
             "stock_code": "ITMG",
             "company_name": "Indo Tambangraya Megah Tbk",
-            "shares": 100,
+            "quantity": 100,
             "average_price": 18000,
-            "current_price": 19525,
-            "market_value": 1952500,
-            "pnl": 152500,
-            "pnl_percent": 8.47,
-            "sector": "Mining"
+            "current_price": indonesian_data.get_current_price("ITMG"),
+            "market_value": indonesian_data.get_current_price("ITMG") * 100,
+            "unrealized_pnl": (indonesian_data.get_current_price("ITMG") - 18000) * 100,
+            "unrealized_pnl_percent": ((indonesian_data.get_current_price("ITMG") - 18000) / 18000) * 100,
+            "sector": "Mining",
+            "last_updated": datetime.now().isoformat()
         },
         {
             "id": 6,
             "stock_code": "ICBP",
             "company_name": "Indofood CBP Sukses Makmur Tbk",
-            "shares": 800,
+            "quantity": 800,
             "average_price": 10200,
-            "current_price": 10950,
-            "market_value": 8760000,
-            "pnl": 600000,
-            "pnl_percent": 7.35,
-            "sector": "Food & Beverages"
+            "current_price": indonesian_data.get_current_price("ICBP"),
+            "market_value": indonesian_data.get_current_price("ICBP") * 800,
+            "unrealized_pnl": (indonesian_data.get_current_price("ICBP") - 10200) * 800,
+            "unrealized_pnl_percent": ((indonesian_data.get_current_price("ICBP") - 10200) / 10200) * 100,
+            "sector": "Food & Beverages",
+            "last_updated": datetime.now().isoformat()
         },
         {
             "id": 7,
             "stock_code": "SMGR",
             "company_name": "Semen Indonesia Tbk",
-            "shares": 1200,
+            "quantity": 1200,
             "average_price": 4900,
-            "current_price": 5150,
-            "market_value": 6180000,
-            "pnl": 300000,
-            "pnl_percent": 5.10,
-            "sector": "Cement"
+            "current_price": indonesian_data.get_current_price("SMGR"),
+            "market_value": indonesian_data.get_current_price("SMGR") * 1200,
+            "unrealized_pnl": (indonesian_data.get_current_price("SMGR") - 4900) * 1200,
+            "unrealized_pnl_percent": ((indonesian_data.get_current_price("SMGR") - 4900) / 4900) * 100,
+            "sector": "Cement",
+            "last_updated": datetime.now().isoformat()
         },
         {
             "id": 8,
             "stock_code": "KLBF",
             "company_name": "Kalbe Farma Tbk",
-            "shares": 5000,
+            "quantity": 5000,
             "average_price": 1400,
-            "current_price": 1535,
-            "market_value": 7675000,
-            "pnl": 675000,
-            "pnl_percent": 9.64,
-            "sector": "Pharmaceuticals"
+            "current_price": indonesian_data.get_current_price("KLBF"),
+            "market_value": indonesian_data.get_current_price("KLBF") * 5000,
+            "unrealized_pnl": (indonesian_data.get_current_price("KLBF") - 1400) * 5000,
+            "unrealized_pnl_percent": ((indonesian_data.get_current_price("KLBF") - 1400) / 1400) * 100,
+            "sector": "Pharmaceuticals",
+            "last_updated": datetime.now().isoformat()
         },
         {
             "id": 9,
             "stock_code": "PGAS",
             "company_name": "Perusahaan Gas Negara Tbk",
-            "shares": 3000,
+            "quantity": 3000,
             "average_price": 1350,
-            "current_price": 1485,
-            "market_value": 4455000,
-            "pnl": 405000,
-            "pnl_percent": 10.00,
-            "sector": "Energy"
+            "current_price": indonesian_data.get_current_price("PGAS"),
+            "market_value": indonesian_data.get_current_price("PGAS") * 3000,
+            "unrealized_pnl": (indonesian_data.get_current_price("PGAS") - 1350) * 3000,
+            "unrealized_pnl_percent": ((indonesian_data.get_current_price("PGAS") - 1350) / 1350) * 100,
+            "sector": "Energy",
+            "last_updated": datetime.now().isoformat()
         },
         {
             "id": 10,
             "stock_code": "CPIN",
             "company_name": "Charoen Pokphand Indonesia Tbk",
-            "shares": 700,
+            "quantity": 700,
             "average_price": 4200,
-            "current_price": 4690,
-            "market_value": 3283000,
-            "pnl": 343000,
-            "pnl_percent": 11.67,
-            "sector": "Agriculture"
+            "current_price": indonesian_data.get_current_price("CPIN"),
+            "market_value": indonesian_data.get_current_price("CPIN") * 700,
+            "unrealized_pnl": (indonesian_data.get_current_price("CPIN") - 4200) * 700,
+            "unrealized_pnl_percent": ((indonesian_data.get_current_price("CPIN") - 4200) / 4200) * 100,
+            "sector": "Agriculture",
+            "last_updated": datetime.now().isoformat()
         }
     ]
 

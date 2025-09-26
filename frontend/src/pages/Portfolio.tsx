@@ -312,7 +312,7 @@ const Portfolio: React.FC = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-right font-medium text-secondary-900">
-                        {position.quantity.toLocaleString()}
+                        {(position.quantity || 0).toLocaleString()}
                       </td>
                       <td className="px-6 py-4 text-right font-medium text-secondary-900">
                         {formatIDR(position.average_price)}
