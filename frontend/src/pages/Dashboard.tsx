@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { RefreshCw, AlertTriangle, TrendingUp, Activity } from 'lucide-react';
+import { RefreshCw, AlertTriangle, TrendingUp, Activity, CheckCircle, Minus } from 'lucide-react';
 import { useDashboardStore } from '@/store/dashboard';
 import PortfolioOverview from '@/components/dashboard/PortfolioOverview';
 import TradingSignals from '@/components/dashboard/TradingSignals';
@@ -133,48 +133,153 @@ const Dashboard: React.FC = () => {
 
       {/* Top Summary Section - Quick Stats & Performance */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        {/* Compact Quick Stats */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="flex items-center gap-2 text-base">
-              <TrendingUp className="h-4 w-4" />
-              Quick Stats
+        {/* Enhanced Quick Stats with Trends */}
+        <Card className="border-l-4 border-l-primary-500">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center justify-between text-base">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-primary-600" />
+                Market Pulse
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-success-500 animate-pulse"></div>
+                <span className="text-xs text-success-600 font-medium">Live</span>
+              </div>
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-3">
-            <div className="grid grid-cols-2 gap-2">
-              <div className="text-center p-2 rounded-lg bg-primary-50">
-                <p className="text-lg font-bold text-primary-900 mb-1">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="group relative p-3 rounded-xl bg-gradient-to-br from-primary-50 to-primary-100 border border-primary-200 hover:shadow-md transition-all duration-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-primary-700 uppercase tracking-wide">Signals Today</span>
+                  <div className="flex items-center gap-1">
+                    <TrendingUp className="h-3 w-3 text-success-500" />
+                    <span className="text-xs text-success-600">+{Math.max(0, topSignals.length - 3)}</span>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold text-primary-900 mb-1">
                   {topSignals.length}
                 </p>
-                <p className="text-xs text-primary-600">Signals</p>
+                <div className="w-full bg-primary-200 rounded-full h-1.5">
+                  <div className="bg-primary-600 h-1.5 rounded-full transition-all duration-500" style={{width: `${Math.min(100, (topSignals.length / 10) * 100)}%`}}></div>
+                </div>
               </div>
-              <div className="text-center p-2 rounded-lg bg-success-50">
-                <p className="text-lg font-bold text-success-900 mb-1">
+
+              <div className="group relative p-3 rounded-xl bg-gradient-to-br from-success-50 to-success-100 border border-success-200 hover:shadow-md transition-all duration-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-success-700 uppercase tracking-wide">Active Positions</span>
+                  <div className="flex items-center gap-1">
+                    <Activity className="h-3 w-3 text-success-500" />
+                    <span className="text-xs text-success-600">
+                      {portfolio?.total_positions ? (portfolio.total_positions > 5 ? 'High' : 'Low') : 'None'}
+                    </span>
+                  </div>
+                </div>
+                <p className="text-2xl font-bold text-success-900 mb-1">
                   {portfolio?.total_positions || 0}
                 </p>
-                <p className="text-xs text-success-600">Positions</p>
+                <div className="w-full bg-success-200 rounded-full h-1.5">
+                  <div className="bg-success-600 h-1.5 rounded-full transition-all duration-500" style={{width: `${Math.min(100, ((portfolio?.total_positions || 0) / 15) * 100)}%`}}></div>
+                </div>
               </div>
-              <div className="text-center p-2 rounded-lg bg-warning-50">
-                <p className="text-lg font-bold text-warning-900 mb-1">
+
+              <div className="group relative p-3 rounded-xl bg-gradient-to-br from-warning-50 to-warning-100 border border-warning-200 hover:shadow-md transition-all duration-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-warning-700 uppercase tracking-wide">Active Alerts</span>
+                  <div className="flex items-center gap-1">
+                    {alerts.length > 0 ? (
+                      <>
+                        <AlertTriangle className="h-3 w-3 text-warning-500" />
+                        <span className="text-xs text-warning-600">
+                          {alerts.length > 5 ? 'High' : 'Normal'}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-3 w-3 text-success-500" />
+                        <span className="text-xs text-success-600">Clear</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <p className="text-2xl font-bold text-warning-900 mb-1">
                   {alerts.length}
                 </p>
-                <p className="text-xs text-warning-600">Alerts</p>
+                <div className="w-full bg-warning-200 rounded-full h-1.5">
+                  <div className="bg-warning-600 h-1.5 rounded-full transition-all duration-500" style={{width: `${Math.min(100, (alerts.length / 8) * 100)}%`}}></div>
+                </div>
               </div>
-              <div className="text-center p-2 rounded-lg bg-secondary-50">
-                {riskOverview?.portfolio_risk_score ? (
-                  <>
-                    <p className="text-lg font-bold text-secondary-900 mb-1">
-                      {(riskOverview.portfolio_risk_score * 100).toFixed(0)}%
-                    </p>
-                    <p className="text-xs text-secondary-600">Risk</p>
-                  </>
-                ) : (
-                  <>
-                    <p className="text-lg font-bold text-secondary-400 mb-1">0%</p>
-                    <p className="text-xs text-secondary-600">Risk</p>
-                  </>
-                )}
+
+              <div className="group relative p-3 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 border border-slate-200 hover:shadow-md transition-all duration-200">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-slate-700 uppercase tracking-wide">Risk Level</span>
+                  <div className="flex items-center gap-1">
+                    {riskOverview?.portfolio_risk_score ? (
+                      riskOverview.portfolio_risk_score > 0.7 ? (
+                        <>
+                          <AlertTriangle className="h-3 w-3 text-danger-500" />
+                          <span className="text-xs text-danger-600">High</span>
+                        </>
+                      ) : riskOverview.portfolio_risk_score > 0.4 ? (
+                        <>
+                          <Minus className="h-3 w-3 text-warning-500" />
+                          <span className="text-xs text-warning-600">Medium</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle className="h-3 w-3 text-success-500" />
+                          <span className="text-xs text-success-600">Low</span>
+                        </>
+                      )
+                    ) : (
+                      <>
+                        <Minus className="h-3 w-3 text-slate-500" />
+                        <span className="text-xs text-slate-600">N/A</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+                <p className="text-2xl font-bold text-slate-900 mb-1">
+                  {riskOverview?.portfolio_risk_score
+                    ? `${(riskOverview.portfolio_risk_score * 100).toFixed(0)}%`
+                    : '0%'
+                  }
+                </p>
+                <div className="w-full bg-slate-200 rounded-full h-1.5">
+                  <div
+                    className={`h-1.5 rounded-full transition-all duration-500 ${
+                      riskOverview?.portfolio_risk_score
+                        ? riskOverview.portfolio_risk_score > 0.7
+                          ? 'bg-danger-600'
+                          : riskOverview.portfolio_risk_score > 0.4
+                            ? 'bg-warning-600'
+                            : 'bg-success-600'
+                        : 'bg-slate-400'
+                    }`}
+                    style={{width: `${(riskOverview?.portfolio_risk_score || 0) * 100}%`}}
+                  ></div>
+                </div>
+              </div>
+            </div>
+
+            {/* Market Status Banner */}
+            <div className="mt-4 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className={`w-2 h-2 rounded-full ${marketStatus?.is_open ? 'bg-success-500' : 'bg-danger-500'}`}></div>
+                  <span className="text-sm font-medium text-blue-900">
+                    Market {marketStatus?.is_open ? 'Open' : 'Closed'}
+                  </span>
+                  <span className="text-xs text-blue-600">
+                    • {marketStatus?.session_type || 'Regular Session'}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-blue-600">Next Session</p>
+                  <p className="text-sm font-semibold text-blue-900">
+                    {marketStatus?.is_open ? 'Tomorrow 09:00' : 'Today 09:00'}
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
