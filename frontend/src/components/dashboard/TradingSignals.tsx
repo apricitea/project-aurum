@@ -50,13 +50,13 @@ const TradingSignals: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-4 gap-4">
         <Card>
-          <CardContent className="p-3">
+          <CardContent className="p-4">
             <div className="text-center">
-              <TrendingUp className="h-6 w-6 text-primary-600 mx-auto mb-2" />
-              <p className="text-xs text-secondary-600 mb-1">Total Signals</p>
-              <p className="text-xl font-bold text-secondary-900">
+              <TrendingUp className="h-8 w-8 text-primary-600 mx-auto mb-3" />
+              <p className="text-sm text-secondary-600 mb-2">Total Signals</p>
+              <p className="text-2xl font-bold text-secondary-900">
                 {signals.length}
               </p>
             </div>
@@ -64,11 +64,11 @@ const TradingSignals: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="p-3">
+          <CardContent className="p-4">
             <div className="text-center">
-              <ArrowUp className="h-6 w-6 text-success-600 mx-auto mb-2" />
-              <p className="text-xs text-secondary-600 mb-1">Buy Signals</p>
-              <p className="text-xl font-bold text-success-600">
+              <ArrowUp className="h-8 w-8 text-success-600 mx-auto mb-3" />
+              <p className="text-sm text-secondary-600 mb-2">Buy Signals</p>
+              <p className="text-2xl font-bold text-success-600">
                 {signals.filter(s => s.signal === 'BUY' || s.signal === 'STRONG_BUY').length}
               </p>
             </div>
@@ -76,11 +76,11 @@ const TradingSignals: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="p-3">
+          <CardContent className="p-4">
             <div className="text-center">
-              <ArrowDown className="h-6 w-6 text-danger-600 mx-auto mb-2" />
-              <p className="text-xs text-secondary-600 mb-1">Sell Signals</p>
-              <p className="text-xl font-bold text-danger-600">
+              <ArrowDown className="h-8 w-8 text-danger-600 mx-auto mb-3" />
+              <p className="text-sm text-secondary-600 mb-2">Sell Signals</p>
+              <p className="text-2xl font-bold text-danger-600">
                 {signals.filter(s => s.signal === 'SELL' || s.signal === 'STRONG_SELL').length}
               </p>
             </div>
@@ -88,11 +88,11 @@ const TradingSignals: React.FC = () => {
         </Card>
 
         <Card>
-          <CardContent className="p-3">
+          <CardContent className="p-4">
             <div className="text-center">
-              <Star className="h-6 w-6 text-warning-500 mx-auto mb-2" />
-              <p className="text-xs text-secondary-600 mb-1">Avg Confidence</p>
-              <p className="text-xl font-bold text-secondary-900">
+              <Star className="h-8 w-8 text-warning-500 mx-auto mb-3" />
+              <p className="text-sm text-secondary-600 mb-2">Avg Confidence</p>
+              <p className="text-2xl font-bold text-secondary-900">
                 {signals.length > 0
                   ? formatPercent(
                       signals.reduce((sum, s) => sum + (s.confidence || 0), 0) / signals.length

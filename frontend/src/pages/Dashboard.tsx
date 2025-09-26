@@ -131,73 +131,72 @@ const Dashboard: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Real-time Updates Component */}
-      <RealTimeUpdates />
+      {/* Top Summary Section - Quick Stats & Performance */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Compact Quick Stats */}
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="flex items-center gap-2 text-base">
+              <TrendingUp className="h-4 w-4" />
+              Quick Stats
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="text-center p-2 rounded-lg bg-primary-50">
+                <p className="text-lg font-bold text-primary-900 mb-1">
+                  {topSignals.length}
+                </p>
+                <p className="text-xs text-primary-600">Signals</p>
+              </div>
+              <div className="text-center p-2 rounded-lg bg-success-50">
+                <p className="text-lg font-bold text-success-900 mb-1">
+                  {portfolio?.total_positions || 0}
+                </p>
+                <p className="text-xs text-success-600">Positions</p>
+              </div>
+              <div className="text-center p-2 rounded-lg bg-warning-50">
+                <p className="text-lg font-bold text-warning-900 mb-1">
+                  {alerts.length}
+                </p>
+                <p className="text-xs text-warning-600">Alerts</p>
+              </div>
+              <div className="text-center p-2 rounded-lg bg-secondary-50">
+                {riskOverview?.portfolio_risk_score ? (
+                  <>
+                    <p className="text-lg font-bold text-secondary-900 mb-1">
+                      {(riskOverview.portfolio_risk_score * 100).toFixed(0)}%
+                    </p>
+                    <p className="text-xs text-secondary-600">Risk</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-lg font-bold text-secondary-400 mb-1">0%</p>
+                    <p className="text-xs text-secondary-600">Risk</p>
+                  </>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Performance Chart - Expanded */}
+        <div className="lg:col-span-2">
+          <PerformanceChart />
+        </div>
+      </div>
 
       {/* Main Dashboard Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column - Market Overview & Alerts */}
-        <div className="space-y-4 lg:space-y-6">
+        <div className="space-y-6">
           <MarketOverview />
           <AlertsPanel />
         </div>
 
-        {/* Middle Column - Trading Signals */}
-        <div className="space-y-4 lg:space-y-6">
+        {/* Middle & Right Columns - Trading Signals (Expanded) */}
+        <div className="lg:col-span-2 space-y-6">
           <TradingSignals />
-        </div>
-
-        {/* Right Column - Portfolio & Performance */}
-        <div className="space-y-4 lg:space-y-6">
-          {/* Quick Stats */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <TrendingUp className="h-5 w-5" />
-                Quick Stats
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="text-center p-3 rounded-lg bg-secondary-50">
-                  <p className="text-xl font-bold text-secondary-900 mb-1">
-                    {topSignals.length}
-                  </p>
-                  <p className="text-xs text-secondary-600 leading-tight">Today's Signals</p>
-                </div>
-                <div className="text-center p-3 rounded-lg bg-secondary-50">
-                  <p className="text-xl font-bold text-secondary-900 mb-1">
-                    {portfolio?.total_positions || 0}
-                  </p>
-                  <p className="text-xs text-secondary-600 leading-tight">Active Positions</p>
-                </div>
-                <div className="text-center p-3 rounded-lg bg-secondary-50">
-                  <p className="text-xl font-bold text-secondary-900 mb-1">
-                    {alerts.length}
-                  </p>
-                  <p className="text-xs text-secondary-600 leading-tight">Active Alerts</p>
-                </div>
-                <div className="text-center p-3 rounded-lg bg-secondary-50">
-                  {riskOverview?.portfolio_risk_score ? (
-                    <>
-                      <p className="text-xl font-bold text-secondary-900 mb-1">
-                        {(riskOverview.portfolio_risk_score * 100).toFixed(0)}%
-                      </p>
-                      <p className="text-xs text-secondary-600 leading-tight">Risk Score</p>
-                    </>
-                  ) : (
-                    <>
-                      <p className="text-xl font-bold text-secondary-400 mb-1">0.00%</p>
-                      <p className="text-xs text-secondary-600 leading-tight">Risk Score</p>
-                    </>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Performance Chart */}
-          <PerformanceChart />
         </div>
       </div>
 

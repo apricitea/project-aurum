@@ -68,13 +68,13 @@ const AlertsPanel: React.FC = () => {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center justify-between text-base">
           <div className="flex items-center space-x-2">
-            <AlertTriangle className="h-5 w-5" />
+            <AlertTriangle className="h-4 w-4" />
             <span>Active Alerts</span>
             {alerts.length > 0 && (
-              <Badge variant="secondary">
+              <Badge variant="secondary" className="text-xs">
                 {alerts.length}
               </Badge>
             )}
@@ -89,7 +89,7 @@ const AlertsPanel: React.FC = () => {
             <p className="text-sm">All systems are running smoothly</p>
           </div>
         ) : (
-          <div className="space-y-4 max-h-96 overflow-y-auto scrollbar-thin">
+          <div className="space-y-3 max-h-80 overflow-y-auto scrollbar-thin">
             {Object.entries(groupedAlerts)
               .sort(([a], [b]) => {
                 const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -97,29 +97,29 @@ const AlertsPanel: React.FC = () => {
               })
               .map(([priority, priorityAlerts]) => (
                 <div key={priority} className="space-y-2">
-                  <h4 className="text-sm font-medium text-secondary-700 uppercase tracking-wider">
+                  <h4 className="text-xs font-medium text-secondary-700 uppercase tracking-wider px-1">
                     {priority} Priority
                   </h4>
                   {priorityAlerts.map((alert) => (
                     <div
                       key={alert.id}
-                      className={`p-3 rounded-lg border ${getAlertPriorityColor(alert.priority)}`}
+                      className={`p-2 rounded-lg border ${getAlertPriorityColor(alert.priority)}`}
                     >
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2 mb-1">
                             {getPriorityIcon(alert.priority)}
-                            <span className="text-sm font-medium">
+                            <span className="text-xs font-medium truncate">
                               {alert.alert_type}
                             </span>
                             {alert.stock_code && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="secondary" className="text-xs flex-shrink-0">
                                 {formatStockCode(alert.stock_code)}
                               </Badge>
                             )}
                           </div>
 
-                          <p className="text-sm text-secondary-900 mb-2">
+                          <p className="text-xs text-secondary-900 mb-1 line-clamp-2">
                             {alert.message}
                           </p>
 
@@ -128,24 +128,24 @@ const AlertsPanel: React.FC = () => {
                           </p>
                         </div>
 
-                        <div className="flex items-center space-x-1 ml-2">
+                        <div className="flex items-center space-x-1 flex-shrink-0">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleAcknowledge(alert.id)}
-                            className="h-8 w-8 p-0"
+                            className="h-6 w-6 p-0"
                             title="Acknowledge"
                           >
-                            <CheckCircle className="h-4 w-4" />
+                            <CheckCircle className="h-3 w-3" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleDismiss(alert.id)}
-                            className="h-8 w-8 p-0"
+                            className="h-6 w-6 p-0"
                             title="Dismiss"
                           >
-                            <X className="h-4 w-4" />
+                            <X className="h-3 w-3" />
                           </Button>
                         </div>
                       </div>
