@@ -156,74 +156,11 @@ async def get_me(current_user: dict = Depends(get_current_user)):
 
 @app.get("/signals/daily")
 async def get_daily_signals(current_user: dict = Depends(get_current_user)):
-    # Extended Indonesian stock universe beyond LQ45
-    indonesian_stocks = [
-        {"code": "BBCA", "name": "Bank Central Asia Tbk", "sector": "Banking", "price": 9750},
-        {"code": "BMRI", "name": "Bank Mandiri Tbk", "sector": "Banking", "price": 5425},
-        {"code": "BBRI", "name": "Bank Rakyat Indonesia Tbk", "sector": "Banking", "price": 4680},
-        {"code": "BBNI", "name": "Bank Negara Indonesia Tbk", "sector": "Banking", "price": 8100},
-        {"code": "ASII", "name": "Astra International Tbk", "sector": "Automotive", "price": 6500},
-        {"code": "UNVR", "name": "Unilever Indonesia Tbk", "sector": "Consumer Goods", "price": 2680},
-        {"code": "TLKM", "name": "Telkom Indonesia Tbk", "sector": "Telecommunications", "price": 4100},
-        {"code": "INDF", "name": "Indofood Sukses Makmur Tbk", "sector": "Food & Beverages", "price": 6925},
-        {"code": "ICBP", "name": "Indofood CBP Sukses Makmur Tbk", "sector": "Food & Beverages", "price": 10950},
-        {"code": "KLBF", "name": "Kalbe Farma Tbk", "sector": "Pharmaceuticals", "price": 1535},
-        {"code": "GGRM", "name": "Gudang Garam Tbk", "sector": "Tobacco", "price": 32000},
-        {"code": "HMSP", "name": "HM Sampoerna Tbk", "sector": "Tobacco", "price": 1385},
-        {"code": "ITMG", "name": "Indo Tambangraya Megah Tbk", "sector": "Mining", "price": 19525},
-        {"code": "PTBA", "name": "Bukit Asam Tbk", "sector": "Mining", "price": 3090},
-        {"code": "ADRO", "name": "Adaro Energy Tbk", "sector": "Mining", "price": 2970},
-        {"code": "ANTM", "name": "Aneka Tambang Tbk", "sector": "Mining", "price": 1720},
-        {"code": "INCO", "name": "Vale Indonesia Tbk", "sector": "Mining", "price": 4280},
-        {"code": "SMGR", "name": "Semen Indonesia Tbk", "sector": "Cement", "price": 5150},
-        {"code": "INTP", "name": "Indocement Tunggal Prakarsa Tbk", "sector": "Cement", "price": 10100},
-        {"code": "WIKA", "name": "Wijaya Karya Tbk", "sector": "Construction", "price": 1345},
-        {"code": "PTPP", "name": "PP (Persero) Tbk", "sector": "Construction", "price": 1105},
-        {"code": "WSKT", "name": "Waskita Karya Tbk", "sector": "Construction", "price": 895},
-        {"code": "ADHI", "name": "Adhi Karya Tbk", "sector": "Construction", "price": 1020},
-        {"code": "JSMR", "name": "Jasa Marga Tbk", "sector": "Infrastructure", "price": 4100},
-        {"code": "PGAS", "name": "Perusahaan Gas Negara Tbk", "sector": "Energy", "price": 1485},
-        {"code": "PGEO", "name": "Perusahaan Gas Negara Tbk", "sector": "Energy", "price": 675},
-        {"code": "MEDC", "name": "Medco Energi Internasional Tbk", "sector": "Energy", "price": 1135},
-        {"code": "AKRA", "name": "AKR Corporindo Tbk", "sector": "Energy", "price": 3800},
-        {"code": "CPIN", "name": "Charoen Pokphand Indonesia Tbk", "sector": "Agriculture", "price": 4690},
-        {"code": "JPFA", "name": "Japfa Comfeed Indonesia Tbk", "sector": "Agriculture", "price": 1150},
-        {"code": "SIDO", "name": "Industri Jamu dan Farmasi Sido Muncul Tbk", "sector": "Pharmaceuticals", "price": 565},
-        {"code": "KAEF", "name": "Kimia Farma Tbk", "sector": "Pharmaceuticals", "price": 1895},
-        {"code": "DVLA", "name": "Darya-Varia Laboratoria Tbk", "sector": "Pharmaceuticals", "price": 1980},
-        {"code": "MAPI", "name": "Mitra Adiperkasa Tbk", "sector": "Retail", "price": 2020},
-        {"code": "LPPF", "name": "Matahari Department Store Tbk", "sector": "Retail", "price": 465},
-        {"code": "ERAA", "name": "Erajaya Swasembada Tbk", "sector": "Retail", "price": 1315},
-        {"code": "ACES", "name": "Ace Hardware Indonesia Tbk", "sector": "Retail", "price": 775},
-        {"code": "SCMA", "name": "Surya Citra Media Tbk", "sector": "Media", "price": 1410},
-        {"code": "VIVA", "name": "Visi Media Asia Tbk", "sector": "Media", "price": 156},
-        {"code": "EMTK", "name": "Elang Mahkota Teknologi Tbk", "sector": "Media", "price": 1600},
-        {"code": "ISAT", "name": "Indosat Ooredoo Hutchison Tbk", "sector": "Telecommunications", "price": 5275},
-        {"code": "EXCL", "name": "XL Axiata Tbk", "sector": "Telecommunications", "price": 2410},
-        {"code": "FREN", "name": "Smartfren Telecom Tbk", "sector": "Telecommunications", "price": 590},
-        {"code": "BKSL", "name": "Sentul City Tbk", "sector": "Property", "price": 76},
-        {"code": "LPKR", "name": "Lippo Karawaci Tbk", "sector": "Property", "price": 294},
-        {"code": "PWON", "name": "Pakuwon Jati Tbk", "sector": "Property", "price": 600},
-        {"code": "CTRA", "name": "Ciputra Development Tbk", "sector": "Property", "price": 1115},
-        {"code": "PLIN", "name": "Plaza Indonesia Realty Tbk", "sector": "Property", "price": 1270},
-        {"code": "MDLN", "name": "Modernland Realty Tbk", "sector": "Property", "price": 680},
-        {"code": "APLN", "name": "Agung Podomoro Land Tbk", "sector": "Property", "price": 214},
-        {"code": "DILD", "name": "Intiland Development Tbk", "sector": "Property", "price": 480},
-        {"code": "BCAP", "name": "MNC Kapital Indonesia Tbk", "sector": "Finance", "price": 76},
-        {"code": "BMTR", "name": "Global Mediacom Tbk", "sector": "Finance", "price": 1110},
-        {"code": "PNBS", "name": "Bank Panin Dubai Syariah Tbk", "sector": "Banking", "price": 206},
-        {"code": "NISP", "name": "Bank OCBC NISP Tbk", "sector": "Banking", "price": 1015},
-        {"code": "MAYA", "name": "Bank Mayapada Internasional Tbk", "sector": "Banking", "price": 2400},
-        {"code": "MEGA", "name": "Bank Mega Tbk", "sector": "Banking", "price": 3780},
-        {"code": "BNBA", "name": "Bank Bumi Arta Tbk", "sector": "Banking", "price": 196},
-        {"code": "BJBR", "name": "Bank Jabar Banten Tbk", "sector": "Banking", "price": 1580},
-        {"code": "BSDE", "name": "Bumi Serpong Damai Tbk", "sector": "Property", "price": 1055},
-        {"code": "PPRO", "name": "PP Properti Tbk", "sector": "Property", "price": 168},
-        {"code": "RALS", "name": "Ramayana Lestari Sentosa Tbk", "sector": "Retail", "price": 810},
-        {"code": "HERO", "name": "Hero Supermarket Tbk", "sector": "Retail", "price": 102}
-    ]
-
+    from indonesian_stocks_data import indonesian_data
     import random
+
+    # Get accurate Indonesian stock data
+    indonesian_stocks = indonesian_data.get_all_stocks()
 
     # Generate signals for random selection of stocks
     selected_stocks = random.sample(indonesian_stocks, 15)
@@ -234,16 +171,18 @@ async def get_daily_signals(current_user: dict = Depends(get_current_user)):
     for stock in selected_stocks:
         signal_type = random.choice(signal_types)
         confidence = round(random.uniform(0.6, 0.95), 2)
-        price_variation = random.uniform(0.95, 1.05)
+
+        # Use real current price with small variation
+        current_price = indonesian_data.get_current_price(stock["code"])
 
         signals.append({
             "stock_code": stock["code"],
             "company_name": stock["name"],
             "signal": signal_type,
             "confidence": confidence,
-            "current_price": int(stock["price"] * price_variation),
-            "target_price": int(stock["price"] * (1.1 if signal_type == "BUY" else 0.9 if signal_type == "SELL" else 1.0)),
-            "stop_loss": int(stock["price"] * (0.92 if signal_type == "BUY" else 1.08 if signal_type == "SELL" else 0.95)),
+            "current_price": current_price,
+            "target_price": int(current_price * (1.1 if signal_type == "BUY" else 0.9 if signal_type == "SELL" else 1.0)),
+            "stop_loss": int(current_price * (0.92 if signal_type == "BUY" else 1.08 if signal_type == "SELL" else 0.95)),
             "reasoning": f"Technical analysis and sector momentum for {stock['sector']} sector",
             "sector": stock["sector"],
             "generated_at": datetime.now().isoformat()
@@ -581,6 +520,69 @@ async def websocket_endpoint(websocket: WebSocket):
         manager.disconnect(websocket)
     except Exception as e:
         manager.disconnect(websocket)
+
+# Backtesting endpoints
+@app.get("/backtesting/performance")
+async def get_backtesting_performance(current_user: dict = Depends(get_current_user)):
+    """Get comprehensive backtesting performance analysis"""
+    from backtesting_engine import backtest_engine
+
+    # Run backtesting analysis
+    performance_data = backtest_engine.run_backtest()
+
+    return {
+        "status": "success",
+        "analysis_date": datetime.now().isoformat(),
+        "performance": performance_data
+    }
+
+@app.get("/backtesting/confidence-analysis")
+async def get_confidence_analysis(current_user: dict = Depends(get_current_user)):
+    """Get confidence-based performance breakdown"""
+    from backtesting_engine import backtest_engine
+
+    if not backtest_engine.trades:
+        backtest_engine.run_backtest()
+
+    performance_data = backtest_engine.analyze_performance()
+
+    return {
+        "status": "success",
+        "confidence_analysis": performance_data.get("confidence_analysis", {}),
+        "overview": performance_data.get("overview", {})
+    }
+
+@app.get("/backtesting/sector-performance")
+async def get_sector_performance(current_user: dict = Depends(get_current_user)):
+    """Get sector-based performance analysis"""
+    from backtesting_engine import backtest_engine
+
+    if not backtest_engine.trades:
+        backtest_engine.run_backtest()
+
+    performance_data = backtest_engine.analyze_performance()
+
+    return {
+        "status": "success",
+        "sector_analysis": performance_data.get("sector_analysis", {}),
+        "monthly_performance": performance_data.get("monthly_performance", [])
+    }
+
+@app.get("/backtesting/best-worst-trades")
+async def get_best_worst_trades(current_user: dict = Depends(get_current_user)):
+    """Get best and worst performing trades"""
+    from backtesting_engine import backtest_engine
+
+    if not backtest_engine.trades:
+        backtest_engine.run_backtest()
+
+    performance_data = backtest_engine.analyze_performance()
+
+    return {
+        "status": "success",
+        "best_trades": performance_data.get("best_trades", []),
+        "worst_trades": performance_data.get("worst_trades", [])
+    }
 
 if __name__ == "__main__":
     import uvicorn
