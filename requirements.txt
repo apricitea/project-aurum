@@ -1,95 +1,79 @@
 # Core API Framework
-fastapi==0.110.0
-uvicorn[standard]==0.24.0
-gunicorn==21.2.0
+fastapi==0.115.4
+uvicorn[standard]==0.32.0
 
 # Database
 asyncpg==0.30.0
-sqlalchemy==2.0.23
-alembic==1.12.1
+sqlalchemy==2.0.36
 
 # Redis and Caching
-redis[hiredis]==5.0.1
-aioredis==2.0.1
+redis==5.2.0
 
 # Authentication and Security
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
-python-multipart==0.0.6
-bcrypt==4.1.2
+python-multipart==0.0.12
+bcrypt==4.2.0
 
-# Task Queue
-celery[redis]==5.4.0
-flower==2.0.1
-
-# Machine Learning (existing components)
-numpy==1.26.4
-pandas==2.2.0
-scikit-learn==1.4.0
-xgboost==2.0.3
-joblib==1.3.2
+# Machine Learning Core
+numpy==2.1.3
+pandas==2.2.3
+scikit-learn==1.5.2
+joblib==1.4.2
 
 # Data Sources
-yfinance==0.2.28
-alpha-vantage==2.3.1
-requests==2.31.0
-aiohttp==3.9.1
+yfinance==0.2.48
+requests==2.32.3
+aiohttp==3.11.7
 
 # Indonesian Market Data
-beautifulsoup4==4.12.2
-# lxml==5.1.0  # Requires system libs - use html.parser instead
+beautifulsoup4==4.12.3
 html5lib==1.1
 
-# Notifications
-# smtplib2==0.2.1  # Package doesn't exist - using built-in smtplib instead
-python-telegram-bot==20.7
-twilio==8.11.0
-
 # Time and Scheduling
-pytz==2023.3
-croniter==2.0.1
-APScheduler==3.10.4
+pytz==2024.2
+APScheduler==3.11.0
+schedule==1.2.2
 
 # Configuration and Environment
-pydantic[email]==2.6.1
-pydantic-settings==2.1.0
-python-dotenv==1.0.0
-
-# Monitoring and Logging
-prometheus-client==0.19.0
-structlog==23.2.0
-
-# Data Validation and Serialization
-marshmallow==3.20.1
+pydantic==2.10.3
+pydantic-settings==2.6.1
+python-dotenv==1.0.1
 
 # HTTP Client
-httpx==0.25.2
-
-# Timezone handling
-# zoneinfo==0.2.1  # Built-in to Python 3.9+ - not needed as dependency
+httpx==0.28.1
 
 # Math and Statistics
-scipy==1.11.4
-statsmodels==0.14.1
+scipy==1.14.1
 
-# Performance
-# orjson==3.9.10  # Requires Rust - using standard json instead
-ujson==5.9.0
+# Machine Learning
+xgboost==2.1.2
 
 # WebSocket support
-websockets==12.0
+websockets==14.1
 
-# File handling
-openpyxl==3.1.2
-reportlab==4.0.8
+# Enhanced Redis support
+redis[hiredis]==5.2.0
 
 # Utilities
 click==8.1.7
-python-slugify==8.0.1
-tqdm==4.66.1
-# Additional Security Dependencies
-slowapi==0.1.9
-cryptography==41.0.7
-argon2-cffi==23.1.0
-validators==0.22.0
+tqdm==4.67.1
 
+# Rate Limiting
+slowapi==0.1.9
+
+# Time zone support
+tzdata==2024.2
+
+# Security
+cryptography==43.0.3
+validators==0.34.0
+
+# Task Queue
+celery[redis]==5.4.0
+
+# Telegram Bot
+python-telegram-bot==21.8
+
+# SMS
+twilio==9.3.7

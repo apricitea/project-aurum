@@ -48,7 +48,7 @@ const PortfolioOverview: React.FC = () => {
     },
     {
       title: 'Total Positions',
-      value: portfolio.total_positions.toString(),
+      value: portfolio.total_positions?.toString() || '0',
       icon: PieChart,
       change: null,
     },

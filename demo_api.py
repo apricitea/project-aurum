@@ -265,14 +265,24 @@ async def get_daily_signals(current_user: dict = Depends(get_current_user)):
 @app.get("/portfolio/summary")
 async def get_portfolio_summary(current_user: dict = Depends(get_current_user)):
     return {
-        "total_value": 150000000,
-        "cash": 25000000,
-        "invested": 125000000,
-        "daily_pnl": 2500000,
-        "daily_pnl_percent": 1.67,
-        "total_pnl": 15000000,
-        "total_pnl_percent": 11.11,
-        "positions_count": 8
+        "total_positions": 8,
+        "total_market_value": 150000000,
+        "total_cost_basis": 125000000,
+        "total_unrealized_pnl": 2500000,
+        "total_unrealized_pnl_percent": 1.67,
+        "sector_breakdown": {
+            "Banking": 35.5,
+            "Telecommunications": 18.2,
+            "Consumer Goods": 15.8,
+            "Mining": 12.1,
+            "Automotive": 10.4,
+            "Property": 8.0
+        },
+        "cash_available": 25000000,
+        "portfolio_beta": 1.12,
+        "sharpe_ratio": 1.45,
+        "max_drawdown": -0.08,
+        "last_updated": datetime.now().isoformat()
     }
 
 @app.get("/portfolio/positions")

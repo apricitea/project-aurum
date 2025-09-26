@@ -198,24 +198,24 @@ const PerformanceChart: React.FC = () => {
         </div>
         
         {/* Performance Metrics */}
-        <div className="mt-4 grid grid-cols-3 gap-4 pt-4 border-t border-secondary-200">
-          <div className="text-center">
-            <p className="text-xs text-secondary-500">Volatility</p>
-            <p className="text-sm font-medium text-secondary-900">
+        <div className="mt-4 grid grid-cols-3 gap-3 pt-3 border-t border-secondary-200">
+          <div className="text-center p-2 rounded-lg bg-secondary-50">
+            <p className="text-xs text-secondary-500 mb-1">Volatility</p>
+            <p className="text-sm font-semibold text-secondary-900">
               {performanceAnalytics?.performance_metrics?.volatility
                 ? formatPercent(performanceAnalytics.performance_metrics.volatility)
                 : '2.1%'}
             </p>
           </div>
-          <div className="text-center">
-            <p className="text-xs text-secondary-500">Sharpe Ratio</p>
-            <p className="text-sm font-medium text-secondary-900">
+          <div className="text-center p-2 rounded-lg bg-secondary-50">
+            <p className="text-xs text-secondary-500 mb-1">Sharpe Ratio</p>
+            <p className="text-sm font-semibold text-secondary-900">
               {performanceAnalytics?.performance_metrics?.sharpe_ratio?.toFixed(2) || '1.42'}
             </p>
           </div>
-          <div className="text-center">
-            <p className="text-xs text-secondary-500">Max Drawdown</p>
-            <p className="text-sm font-medium text-danger-600">
+          <div className="text-center p-2 rounded-lg bg-secondary-50">
+            <p className="text-xs text-secondary-500 mb-1">Max Drawdown</p>
+            <p className="text-sm font-semibold text-danger-600">
               {performanceAnalytics?.performance_metrics?.max_drawdown
                 ? formatPercent(performanceAnalytics.performance_metrics.max_drawdown)
                 : '-4.2%'}

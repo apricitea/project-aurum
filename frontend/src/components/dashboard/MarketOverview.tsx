@@ -85,22 +85,23 @@ const MarketOverview: React.FC = () => {
       <CardContent>
         <div className="space-y-6">
           {/* Market Status */}
-          <div className="flex items-center justify-between p-4 rounded-lg bg-secondary-50">
-            <div className="flex items-center space-x-3">
-              <Clock className="h-5 w-5 text-secondary-600" />
-              <div>
-                <p className="text-sm font-medium text-secondary-900">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 rounded-lg bg-secondary-50 space-y-3 sm:space-y-0">
+            <div className="flex items-center space-x-3 min-w-0 flex-1">
+              <Clock className="h-5 w-5 text-secondary-600 flex-shrink-0" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-secondary-900 truncate">
                   Current Time (WIB)
                 </p>
-                <p className="text-lg font-bold text-secondary-900">
+                <p className="text-base sm:text-lg font-bold text-secondary-900 truncate">
                   {formatWIBDateTime(currentTime)}
                 </p>
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-left sm:text-right flex-shrink-0">
               <p className="text-sm text-secondary-600">Trading Hours</p>
               <p className="text-sm font-medium text-secondary-900">
-                09:00 - 15:49 WIB
+                09:00 - 15:49
+                <span className="hidden sm:inline"> WIB</span>
               </p>
             </div>
           </div>
@@ -110,7 +111,7 @@ const MarketOverview: React.FC = () => {
             <h4 className="text-sm font-medium text-secondary-700 uppercase tracking-wider">
               Major Indices
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-3">
               {marketIndices.map((index, i) => {
                 const isPositive = index.change >= 0;
                 const Icon = isPositive ? TrendingUp : TrendingDown;
@@ -118,39 +119,43 @@ const MarketOverview: React.FC = () => {
                 return (
                   <div
                     key={index.name}
-                    className="p-4 rounded-lg border border-secondary-200 bg-white"
+                    className="flex items-center justify-between p-3 rounded-lg border border-secondary-200 bg-white"
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <h5 className="font-medium text-secondary-900">
-                        {index.name}
-                      </h5>
-                      <Icon
-                        className={`h-4 w-4 ${
-                          isPositive ? 'text-success-600' : 'text-danger-600'
-                        }`}
-                      />
+                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center space-x-2 mb-1">
+                          <h5 className="font-semibold text-secondary-900 text-lg">
+                            {index.name}
+                          </h5>
+                          <Icon
+                            className={`h-4 w-4 flex-shrink-0 ${
+                              isPositive ? 'text-success-600' : 'text-danger-600'
+                            }`}
+                          />
+                        </div>
+                        <p className="text-xl font-bold text-secondary-900">
+                          {index.value.toLocaleString('id-ID', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                        </p>
+                      </div>
                     </div>
-                    <p className="text-xl font-bold text-secondary-900 mb-1">
-                      {index.value.toLocaleString('id-ID', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      })}
-                    </p>
-                    <div className="flex items-center space-x-2">
-                      <span
+                    <div className="text-right flex-shrink-0">
+                      <div
                         className={`text-sm font-medium ${
                           isPositive ? 'text-success-600' : 'text-danger-600'
                         }`}
                       >
                         {isPositive ? '+' : ''}{index.change.toFixed(2)}
-                      </span>
-                      <span
+                      </div>
+                      <div
                         className={`text-sm ${
                           isPositive ? 'text-success-600' : 'text-danger-600'
                         }`}
                       >
                         ({isPositive ? '+' : ''}{index.changePercent.toFixed(2)}%)
-                      </span>
+                      </div>
                     </div>
                   </div>
                 );
@@ -159,20 +164,21 @@ const MarketOverview: React.FC = () => {
           </div>
 
           {/* Market Session Info */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="p-3 rounded-lg bg-primary-50 border border-primary-200">
-              <p className="text-sm font-medium text-primary-900 mb-1">
+              <p className="text-xs font-medium text-primary-900 mb-1 uppercase tracking-wide">
                 Next Market Open
               </p>
-              <p className="text-sm text-primary-700">
-                {marketIsOpen ? 'Tomorrow 09:00 WIB' : 'Today 09:00 WIB'}
+              <p className="text-sm font-semibold text-primary-700">
+                {marketIsOpen ? 'Tomorrow 09:00' : 'Today 09:00'}
+                <span className="text-xs ml-1">WIB</span>
               </p>
             </div>
             <div className="p-3 rounded-lg bg-secondary-50 border border-secondary-200">
-              <p className="text-sm font-medium text-secondary-900 mb-1">
-                Last Data Update
+              <p className="text-xs font-medium text-secondary-900 mb-1 uppercase tracking-wide">
+                Last Update
               </p>
-              <p className="text-sm text-secondary-700">
+              <p className="text-sm font-semibold text-secondary-700 truncate">
                 {marketStatus
                   ? formatWIBDateTime(marketStatus.current_time)
                   : 'Loading...'

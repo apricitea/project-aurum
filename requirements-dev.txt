@@ -1,50 +1,45 @@
-# Include production requirements
+# Development Requirements for Project Aurum
+# Include all production dependencies
 -r requirements.txt
 
-# Development tools
-jupyter==1.0.0
-jupyterlab==4.0.8
-ipython==8.17.2
+# Development and Testing Tools
+pytest==8.3.4
+pytest-asyncio==0.25.0
+pytest-cov==6.0.0
+pytest-mock==3.14.0
+pytest-xdist==3.6.0
 
-# Testing
-pytest==7.4.3
-pytest-asyncio==0.21.1
-pytest-cov==4.1.0
-pytest-mock==3.12.0
-httpx==0.25.2
-factory-boy==3.3.1
+# Code Quality and Linting
+black==24.10.0
+isort==5.13.2
+flake8==7.1.1
+mypy==1.13.0
+bandit==1.8.0
+safety==3.2.11
 
-# Code quality
-black==23.11.0
-isort==5.12.0
-flake8==6.1.0
-mypy==1.7.1
-bandit==1.7.5
-safety==2.3.5
-pre-commit==3.5.0
+# Development Utilities
+pre-commit==4.0.1
+watchdog==6.0.0
+ipython==8.29.0
+jupyter==1.1.1
 
 # Documentation
-sphinx==7.2.6
-sphinx-rtd-theme==1.3.0
-mkdocs==1.5.3
-mkdocs-material==9.4.8
+sphinx==8.1.3
+sphinx-rtd-theme==3.0.2
 
-# Debugging
-pdb++==0.10.3
-ipdb==0.13.13
+# API Testing
+httpx==0.28.1
+faker==33.1.0
 
-# Performance profiling
-py-spy==0.3.14
+# Type Checking
+types-redis==4.6.0.20241004
+types-requests==2.32.0.20241016
+types-python-jose==3.3.4.20240106
+
+# Performance Profiling
 memory-profiler==0.61.0
+line-profiler==4.1.3
+py-spy==0.4.0
 
-# Database migrations
-alembic==1.12.1
-
-# API documentation
-redoc==2.1.3
-
-# Environment management
-python-dotenv==1.0.0
-
-# Development server
-watchdog==3.0.0
+# Database Migrations
+alembic==1.14.0
