@@ -148,6 +148,7 @@ python signal_generator.py
 - **Branch Strategy**: Feature branches with main branch
 - **Commit Convention**: Descriptive commit messages
 - **Automated**: Pre-commit hooks configured with .pre-commit-config.yaml
+- **Auto-commit Rule**: ALWAYS commit changes immediately after completing user requests
 
 ## 🎯 Current Focus Areas
 
@@ -248,6 +249,7 @@ docker-compose exec redis redis-cli ping
 - Run comprehensive tests before committing
 - Update documentation for API changes
 - Monitor performance impact of ML model updates
+- **CRITICAL: Auto-commit all changes immediately after completing any user request**
 
 ---
 
