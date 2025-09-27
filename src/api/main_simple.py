@@ -276,49 +276,81 @@ async def get_risk_overview():
 async def get_backtesting_performance():
     """Get backtesting performance data"""
     return {
-        "total_trades": 245,
-        "win_rate": 68.2,
-        "total_profit": 185420000,  # 185.42M IDR
-        "total_profit_formatted": "Rp 185.42M",
-        "avg_return": 2.85,
-        "avg_holding_days": 12.5,
-        "best_trade": 24580000,  # 24.58M IDR
-        "worst_trade": -8920000,  # -8.92M IDR
-        "sharpe_ratio": 1.52,
-        "max_drawdown": 12.8,
-        "sortino_ratio": 2.14,
-        "calmar_ratio": 1.85,
-        "total_return": 23.7,
-        "annual_return": 19.4,
-        "monthly_returns": [
-            {"month": "Jan", "return": 3.2},
-            {"month": "Feb", "return": -1.8},
-            {"month": "Mar", "return": 4.1},
-            {"month": "Apr", "return": 2.7},
-            {"month": "May", "return": -0.9},
-            {"month": "Jun", "return": 3.8},
-            {"month": "Jul", "return": 1.6},
-            {"month": "Aug", "return": 2.3},
-            {"month": "Sep", "return": 4.9},
-            {"month": "Oct", "return": 1.2},
-            {"month": "Nov", "return": 2.8},
-            {"month": "Dec", "return": 3.1}
-        ],
-        "sector_performance": {
-            "Banking": {"return": 21.5, "trades": 78},
-            "Consumer Goods": {"return": 18.2, "trades": 45},
-            "Technology": {"return": 28.7, "trades": 32},
-            "Mining": {"return": 15.8, "trades": 42},
-            "Telecommunications": {"return": 12.3, "trades": 48}
-        },
-        "confidence_analysis": {
-            "high_confidence": {"trades": 82, "success_rate": 78.2, "avg_return": 4.1},
-            "medium_confidence": {"trades": 115, "success_rate": 65.8, "avg_return": 2.8},
-            "low_confidence": {"trades": 48, "success_rate": 58.3, "avg_return": 1.2}
-        },
-        "period_start": "2023-01-01",
-        "period_end": "2024-09-27",
-        "generated_at": datetime.now().isoformat()
+        "performance": {
+            "overview": {
+                "total_trades": 245,
+                "win_rate": 68.2,
+                "total_profit": 185420000,  # 185.42M IDR
+                "total_profit_formatted": "Rp 185.42M",
+                "avg_return": 2.85,
+                "avg_holding_days": 12.5,
+                "best_trade": 24580000,  # 24.58M IDR
+                "worst_trade": -8920000,  # -8.92M IDR
+                "sharpe_ratio": 1.52,
+                "max_drawdown": 12.8,
+                "sortino_ratio": 2.14,
+                "calmar_ratio": 1.85,
+                "total_return": 23.7,
+                "annual_return": 19.4
+            },
+            "monthly_returns": [
+                {"month": "Jan", "return": 3.2},
+                {"month": "Feb", "return": -1.8},
+                {"month": "Mar", "return": 4.1},
+                {"month": "Apr", "return": 2.7},
+                {"month": "May", "return": -0.9},
+                {"month": "Jun", "return": 3.8},
+                {"month": "Jul", "return": 1.6},
+                {"month": "Aug", "return": 2.3},
+                {"month": "Sep", "return": 4.9},
+                {"month": "Oct", "return": 1.2},
+                {"month": "Nov", "return": 2.8},
+                {"month": "Dec", "return": 3.1}
+            ],
+            "sector_analysis": {
+                "Banking": {"total_trades": 78, "win_rate": 71.8, "avg_return": 2.9, "total_profit": 45280000},
+                "Consumer Goods": {"total_trades": 45, "win_rate": 66.7, "avg_return": 2.3, "total_profit": 28150000},
+                "Technology": {"total_trades": 32, "win_rate": 75.0, "avg_return": 3.8, "total_profit": 38920000},
+                "Mining": {"total_trades": 42, "win_rate": 61.9, "avg_return": 1.9, "total_profit": 22480000},
+                "Telecommunications": {"total_trades": 48, "win_rate": 58.3, "avg_return": 1.4, "total_profit": 15590000}
+            },
+            "confidence_analysis": {
+                "high": {"total_trades": 82, "win_rate": 78.2, "avg_return": 4.1, "total_profit": 75420000, "profit_formatted": "Rp 75.42M"},
+                "medium": {"total_trades": 115, "win_rate": 65.8, "avg_return": 2.8, "total_profit": 85230000, "profit_formatted": "Rp 85.23M"},
+                "low": {"total_trades": 48, "win_rate": 58.3, "avg_return": 1.2, "total_profit": 24770000, "profit_formatted": "Rp 24.77M"}
+            },
+            "best_trades": [
+                {"stock_code": "BBCA.JK", "profit": 24580000, "return_pct": 8.9, "confidence": 0.89, "date": "2024-08-15"},
+                {"stock_code": "ASII.JK", "profit": 18920000, "return_pct": 7.2, "confidence": 0.82, "date": "2024-07-22"},
+                {"stock_code": "UNVR.JK", "profit": 16450000, "return_pct": 6.8, "confidence": 0.91, "date": "2024-06-10"},
+                {"stock_code": "BBRI.JK", "profit": 14230000, "return_pct": 5.9, "confidence": 0.76, "date": "2024-09-03"},
+                {"stock_code": "TLKM.JK", "profit": 12880000, "return_pct": 5.4, "confidence": 0.71, "date": "2024-05-28"}
+            ],
+            "worst_trades": [
+                {"stock_code": "JSMR.JK", "profit": -8920000, "return_pct": -4.2, "confidence": 0.65, "date": "2024-04-18"},
+                {"stock_code": "PGAS.JK", "profit": -7560000, "return_pct": -3.8, "confidence": 0.58, "date": "2024-03-25"},
+                {"stock_code": "ANTM.JK", "profit": -6890000, "return_pct": -3.1, "confidence": 0.62, "date": "2024-02-14"},
+                {"stock_code": "ADRO.JK", "profit": -5420000, "return_pct": -2.9, "confidence": 0.59, "date": "2024-08-07"},
+                {"stock_code": "ITMG.JK", "profit": -4780000, "return_pct": -2.3, "confidence": 0.67, "date": "2024-01-30"}
+            ],
+            "monthly_performance": [
+                {"month": "Jan", "profit": 15420000, "trades": 21},
+                {"month": "Feb", "profit": -8920000, "trades": 19},
+                {"month": "Mar", "profit": 18650000, "trades": 23},
+                {"month": "Apr", "profit": 12340000, "trades": 20},
+                {"month": "May", "profit": -4580000, "trades": 18},
+                {"month": "Jun", "profit": 22110000, "trades": 25},
+                {"month": "Jul", "profit": 9870000, "trades": 22},
+                {"month": "Aug", "profit": 16780000, "trades": 24},
+                {"month": "Sep", "profit": 28920000, "trades": 27},
+                {"month": "Oct", "profit": 7650000, "trades": 19},
+                {"month": "Nov", "profit": 19340000, "trades": 23},
+                {"month": "Dec", "profit": 21450000, "trades": 24}
+            ],
+            "period_start": "2023-01-01",
+            "period_end": "2024-09-27",
+            "generated_at": datetime.now().isoformat()
+        }
     }
 
 @app.get("/analytics/performance")
