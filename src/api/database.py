@@ -54,7 +54,7 @@ class Alert(Base):
     message = Column(Text, nullable=False)
     priority = Column(String(10), nullable=False, default="medium")
     status = Column(String(20), nullable=False, default="active")
-    metadata = Column(JSONB, default={})
+    meta_data = Column(JSONB, default={})
     stock_code = Column(String(10))
     user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -82,7 +82,7 @@ class TradingSignal(Base):
     fundamental_score = Column(Float)
     sentiment_score = Column(Float)
     risk_adjusted = Column(Boolean, default=False)
-    metadata = Column(JSONB, default={})
+    meta_data = Column(JSONB, default={})
     generated_at = Column(DateTime, default=datetime.utcnow)
 
 
@@ -116,7 +116,7 @@ class RiskAlert(Base):
     threshold_value = Column(Float)
     current_value = Column(Float)
     is_active = Column(Boolean, default=True)
-    metadata = Column(JSONB, default={})
+    meta_data = Column(JSONB, default={})
     created_at = Column(DateTime, default=datetime.utcnow)
     resolved_at = Column(DateTime)
 
@@ -149,7 +149,7 @@ class SystemMetric(Base):
     metric_name = Column(String(100), nullable=False)
     metric_value = Column(Float, nullable=False)
     timestamp = Column(DateTime, default=datetime.utcnow)
-    metadata = Column(JSONB, default={})
+    meta_data = Column(JSONB, default={})
 
 
 class SignalGenerationTask(Base):
@@ -161,7 +161,7 @@ class SignalGenerationTask(Base):
     started_at = Column(DateTime, default=datetime.utcnow)
     completed_at = Column(DateTime)
     error_message = Column(Text)
-    metadata = Column(JSONB, default={})
+    meta_data = Column(JSONB, default={})
     signals_generated = Column(Integer, default=0)
 
 

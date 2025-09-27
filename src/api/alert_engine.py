@@ -13,8 +13,8 @@ from dataclasses import dataclass
 from enum import Enum
 import smtplib
 import ssl
-from email.mime.text import MimeText
-from email.mime.multipart import MimeMultipart
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import aioredis
 import websockets
 from celery import Celery
@@ -128,14 +128,14 @@ class EmailNotifier:
     async def send_alert(self, alert: Dict[str, Any], recipients: List[str]):
         """Send alert via email"""
         try:
-            msg = MimeMultipart()
+            msg = MIMEMultipart()
             msg['From'] = self.from_email
             msg['To'] = ', '.join(recipients)
             msg['Subject'] = f"Trading Alert: {alert['alert_type']} ({alert['priority'].upper()})"
 
             # Create email body
             body = self._create_email_body(alert)
-            msg.attach(MimeText(body, 'html'))
+            msg.attach(MIMEText(body, 'html'))
 
             # Send email
             context = ssl.create_default_context()

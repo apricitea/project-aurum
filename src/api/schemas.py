@@ -123,7 +123,7 @@ class AlertResponse(BaseModel):
             priority=AlertPriority(db_record['priority']),
             status=AlertStatus(db_record['status']),
             stock_code=db_record.get('stock_code'),
-            metadata=db_record.get('metadata', {}),
+            metadata=db_record.get('meta_data', {}),
             created_at=db_record['created_at'],
             updated_at=db_record['updated_at'],
             acknowledged_at=db_record.get('acknowledged_at'),
@@ -169,7 +169,7 @@ class TradingSignalResponse(BaseModel):
             fundamental_score=float(db_record['fundamental_score']) if db_record.get('fundamental_score') else None,
             sentiment_score=float(db_record['sentiment_score']) if db_record.get('sentiment_score') else None,
             risk_adjusted=bool(db_record.get('risk_adjusted', False)),
-            metadata=db_record.get('metadata', {}),
+            metadata=db_record.get('meta_data', {}),
             generated_at=db_record['generated_at']
         )
 

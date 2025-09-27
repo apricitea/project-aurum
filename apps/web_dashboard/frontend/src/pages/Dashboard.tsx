@@ -241,7 +241,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 <p className="text-2xl font-bold text-slate-900 mb-1">
                   {riskOverview?.portfolio_risk_score
-                    ? `${(riskOverview.portfolio_risk_score * 100).toFixed(0)}%`
+                    ? `${Math.min(100, (riskOverview.portfolio_risk_score * 100)).toFixed(0)}%`
                     : '0%'
                   }
                 </p>
@@ -256,7 +256,7 @@ const Dashboard: React.FC = () => {
                             : 'bg-success-600'
                         : 'bg-slate-400'
                     }`}
-                    style={{width: `${(riskOverview?.portfolio_risk_score || 0) * 100}%`}}
+                    style={{width: `${Math.min(100, (riskOverview?.portfolio_risk_score || 0) * 100)}%`}}
                   ></div>
                 </div>
               </div>
