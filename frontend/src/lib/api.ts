@@ -200,6 +200,11 @@ class ApiClient {
     return this.request<PerformanceAnalytics>(`/analytics/performance?days=${days}`);
   }
 
+  // Backtesting
+  async getBacktestingPerformance(): Promise<any> {
+    return this.request('/backtesting/performance');
+  }
+
   // Health Check
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
     return this.request('/health');

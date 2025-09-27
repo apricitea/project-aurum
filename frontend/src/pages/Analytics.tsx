@@ -41,8 +41,8 @@ ChartJS.register(
 
 const Analytics: React.FC = () => {
   const {
-    performanceAnalytics,
-    loadPerformanceAnalytics,
+    performance,
+    fetchPerformance,
     portfolio,
     isLoading,
   } = useDashboardStore();
@@ -51,12 +51,12 @@ const Analytics: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'performance' | 'signals' | 'risk'>('performance');
 
   useEffect(() => {
-    loadPerformanceAnalytics(timeFrame);
-  }, [loadPerformanceAnalytics, timeFrame]);
+    fetchPerformance(timeFrame);
+  }, [fetchPerformance, timeFrame]);
 
   // Sample data for charts (in real app, this would come from API)
   const generateSignalDistributionData = () => {
-    if (!performanceAnalytics) {
+    if (!performance || !performance.signal_type_distribution) {
       return {
         labels: ['Strong Buy', 'Buy', 'Hold', 'Sell', 'Strong Sell'],
         datasets: [
@@ -70,7 +70,7 @@ const Analytics: React.FC = () => {
       };
     }
 
-    const distribution = performanceAnalytics.signal_type_distribution;
+    const distribution = performance.signal_type_distribution;
     return {
       labels: Object.keys(distribution).map(key => key.replace('_', ' ')),
       datasets: [
@@ -215,8 +215,8 @@ const Analytics: React.FC = () => {
                 <div className="text-center">
                   <p className="text-sm text-secondary-600">Total Return</p>
                   <p className="text-2xl font-bold text-success-600">
-                    {performanceAnalytics?.performance_metrics?.total_return
-                      ? formatPercent(performanceAnalytics.performance_metrics.total_return)
+                    {performance?.performance_metrics?.total_return
+                      ? formatPercent(performance.performance_metrics.total_return)
                       : '+12.4%'
                     }
                   </p>
@@ -230,8 +230,8 @@ const Analytics: React.FC = () => {
                 <div className="text-center">
                   <p className="text-sm text-secondary-600">Annualized Return</p>
                   <p className="text-2xl font-bold text-primary-600">
-                    {performanceAnalytics?.performance_metrics?.annualized_return
-                      ? formatPercent(performanceAnalytics.performance_metrics.annualized_return)
+                    {performance?.performance_metrics?.annualized_return
+                      ? formatPercent(performance.performance_metrics.annualized_return)
                       : '+18.7%'
                     }
                   </p>
@@ -245,8 +245,8 @@ const Analytics: React.FC = () => {
                 <div className="text-center">
                   <p className="text-sm text-secondary-600">Volatility</p>
                   <p className="text-2xl font-bold text-warning-600">
-                    {performanceAnalytics?.performance_metrics?.volatility
-                      ? formatPercent(performanceAnalytics.performance_metrics.volatility)
+                    {performance?.performance_metrics?.volatility
+                      ? formatPercent(performance.performance_metrics.volatility)
                       : '14.2%'
                     }
                   </p>
@@ -260,7 +260,7 @@ const Analytics: React.FC = () => {
                 <div className="text-center">
                   <p className="text-sm text-secondary-600">Sharpe Ratio</p>
                   <p className="text-2xl font-bold text-secondary-900">
-                    {performanceAnalytics?.performance_metrics?.sharpe_ratio?.toFixed(2) || '1.42'}
+                    {performance?.performance_metrics?.sharpe_ratio?.toFixed(2) || '1.42'}
                   </p>
                   <p className="text-xs text-secondary-500 mt-1">Risk-adjusted</p>
                 </div>
@@ -296,7 +296,7 @@ const Analytics: React.FC = () => {
                 <div className="text-center">
                   <p className="text-sm text-secondary-600">Total Signals</p>
                   <p className="text-2xl font-bold text-secondary-900">
-                    {performanceAnalytics?.total_signals || 245}
+                    {performance?.total_signals || 245}
                   </p>
                   <p className="text-xs text-secondary-500 mt-1">{timeFrame} days</p>
                 </div>
@@ -308,8 +308,8 @@ const Analytics: React.FC = () => {
                 <div className="text-center">
                   <p className="text-sm text-secondary-600">Avg. Confidence</p>
                   <p className="text-2xl font-bold text-primary-600">
-                    {performanceAnalytics?.avg_confidence
-                      ? formatPercent(performanceAnalytics.avg_confidence)
+                    {performance?.avg_confidence
+                      ? formatPercent(performance.avg_confidence)
                       : '78.5%'
                     }
                   </p>
@@ -323,8 +323,8 @@ const Analytics: React.FC = () => {
                 <div className="text-center">
                   <p className="text-sm text-secondary-600">Win Rate</p>
                   <p className="text-2xl font-bold text-success-600">
-                    {performanceAnalytics?.performance_metrics?.win_rate
-                      ? formatPercent(performanceAnalytics.performance_metrics.win_rate)
+                    {performance?.performance_metrics?.win_rate
+                      ? formatPercent(performance.performance_metrics.win_rate)
                       : '67.3%'
                     }
                   </p>
@@ -338,7 +338,7 @@ const Analytics: React.FC = () => {
                 <div className="text-center">
                   <p className="text-sm text-secondary-600">Daily Signals</p>
                   <p className="text-2xl font-bold text-secondary-900">
-                    {performanceAnalytics?.avg_daily_signals?.toFixed(1) || '8.2'}
+                    {performance?.avg_daily_signals?.toFixed(1) || '8.2'}
                   </p>
                   <p className="text-xs text-secondary-500 mt-1">Average per day</p>
                 </div>
@@ -374,8 +374,8 @@ const Analytics: React.FC = () => {
                 <div className="text-center">
                   <p className="text-sm text-secondary-600">Max Drawdown</p>
                   <p className="text-2xl font-bold text-danger-600">
-                    {performanceAnalytics?.performance_metrics?.max_drawdown
-                      ? formatPercent(performanceAnalytics.performance_metrics.max_drawdown)
+                    {performance?.performance_metrics?.max_drawdown
+                      ? formatPercent(performance.performance_metrics.max_drawdown)
                       : '-8.4%'
                     }
                   </p>

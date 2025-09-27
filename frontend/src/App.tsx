@@ -6,6 +6,7 @@ import Signals from './pages/Signals';
 import Portfolio from './pages/Portfolio';
 import Analytics from './pages/Analytics';
 import Backtesting from './pages/Backtesting';
+import Risk from './pages/Risk';
 import Settings from './pages/Settings';
 import Login from './pages/Login';
 import { useAuthStore } from './store/auth';
@@ -50,6 +51,7 @@ const App: React.FC = () => {
           <Route path="portfolio" element={<Portfolio />} />
           <Route path="analytics" element={<Analytics />} />
           <Route path="backtesting" element={<Backtesting />} />
+          <Route path="risk" element={<Risk />} />
           <Route path="settings" element={<Settings />} />
         </Route>
         <Route path="/login" element={<Navigate to="/" replace />} />

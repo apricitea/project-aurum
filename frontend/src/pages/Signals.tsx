@@ -34,7 +34,7 @@ interface FilterState {
 }
 
 const Signals: React.FC = () => {
-  const { dailySignals, loadDailySignals, isLoading } = useDashboardStore();
+  const { signals, fetchSignals, isLoading } = useDashboardStore();
   const [filters, setFilters] = useState<FilterState>({
     search: '',
     signalType: 'ALL',
@@ -46,12 +46,12 @@ const Signals: React.FC = () => {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    loadDailySignals();
-  }, [loadDailySignals]);
+    fetchSignals();
+  }, [fetchSignals]);
 
   // Filter and sort signals
   const filteredSignals = React.useMemo(() => {
-    let filtered = [...dailySignals];
+    let filtered = [...(signals || [])];
 
     // Search filter
     if (filters.search) {
@@ -83,7 +83,7 @@ const Signals: React.FC = () => {
     });
 
     return filtered;
-  }, [dailySignals, filters]);
+  }, [signals, filters]);
 
   const handleFilterChange = (key: keyof FilterState, value: any) => {
     setFilters(prev => ({ ...prev, [key]: value }));
@@ -280,11 +280,11 @@ const Signals: React.FC = () => {
       {/* Results Summary */}
       <div className="flex items-center justify-between text-sm text-secondary-600">
         <span>
-          Showing {filteredSignals.length} of {dailySignals.length} signals
+          Showing {filteredSignals.length} of {signals.length} signals
         </span>
-        {dailySignals.length > 0 && (
+        {signals.length > 0 && (
           <span>
-            Last updated: {formatWIBDateTime(dailySignals[0]?.generated_at || new Date())}
+            Last updated: {formatWIBDateTime(signals[0]?.generated_at || new Date())}
           </span>
         )}
       </div>
@@ -299,7 +299,7 @@ const Signals: React.FC = () => {
           ) : filteredSignals.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-secondary-500">
-                {dailySignals.length === 0 ? 'No signals available' : 'No signals match your filters'}
+                {signals.length === 0 ? 'No signals available' : 'No signals match your filters'}
               </p>
             </div>
           ) : (

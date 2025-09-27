@@ -15,7 +15,7 @@ import {
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { useAuthStore } from '@/store/auth';
+import { apiClient } from '@/lib/api';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 interface BacktestOverview {
@@ -71,7 +71,6 @@ interface BacktestingData {
 }
 
 const Backtesting: React.FC = () => {
-  const { token } = useAuthStore();
   const [backtestData, setBacktestData] = useState<BacktestingData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,18 +80,7 @@ const Backtesting: React.FC = () => {
     setError(null);
 
     try {
-      const response = await fetch('/api/backtesting/performance', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch backtest data');
-      }
-
-      const data = await response.json();
+      const data = await apiClient.getBacktestingPerformance();
       setBacktestData(data.performance);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load backtest data');

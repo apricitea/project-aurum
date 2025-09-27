@@ -31,7 +31,7 @@ const Portfolio: React.FC = () => {
   const {
     portfolio,
     positions,
-    loadPortfolio,
+    fetchPortfolio,
     updatePosition,
     isLoading,
   } = useDashboardStore();
@@ -48,8 +48,8 @@ const Portfolio: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
 
   useEffect(() => {
-    loadPortfolio();
-  }, [loadPortfolio]);
+    fetchPortfolio();
+  }, [fetchPortfolio]);
 
   const handleUpdatePosition = async (position: Position) => {
     try {

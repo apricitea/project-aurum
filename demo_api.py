@@ -176,15 +176,25 @@ async def get_daily_signals(current_user: dict = Depends(get_current_user)):
         current_price = indonesian_data.get_current_price(stock["code"])
 
         signals.append({
+            "id": len(signals) + 1,
+            "date": datetime.now().date().isoformat(),
             "stock_code": stock["code"],
-            "company_name": stock["name"],
-            "signal": signal_type,
-            "confidence": confidence,
-            "current_price": current_price,
-            "target_price": int(current_price * (1.1 if signal_type == "BUY" else 0.9 if signal_type == "SELL" else 1.0)),
-            "stop_loss": int(current_price * (0.92 if signal_type == "BUY" else 1.08 if signal_type == "SELL" else 0.95)),
-            "reasoning": f"Technical analysis and sector momentum for {stock['sector']} sector",
             "sector": stock["sector"],
+            "signal_type": signal_type,
+            "composite_score": round(random.uniform(0.6, 0.95), 2),
+            "confidence": confidence,
+            "position_size": round(random.uniform(0.02, 0.05), 3),
+            "current_price": current_price,
+            "volume": random.randint(100000, 1000000),
+            "technical_score": round(random.uniform(0.5, 0.9), 2),
+            "fundamental_score": round(random.uniform(0.5, 0.9), 2),
+            "sentiment_score": round(random.uniform(0.5, 0.9), 2),
+            "risk_adjusted": True,
+            "metadata": {
+                "target_price": int(current_price * (1.1 if signal_type == "BUY" else 0.9 if signal_type == "SELL" else 1.0)),
+                "stop_loss": int(current_price * (0.92 if signal_type == "BUY" else 1.08 if signal_type == "SELL" else 0.95)),
+                "reasoning": f"Technical analysis and sector momentum for {stock['sector']} sector"
+            },
             "generated_at": datetime.now().isoformat()
         })
 
