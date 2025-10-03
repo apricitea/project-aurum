@@ -1,0 +1,19 @@
+# Add these lines to config.py after line 90 (after DEFAULT_TELEGRAM_CHATS):
+
+    # Telegram Bot settings (for interactive bot)
+    TELEGRAM_WEBHOOK_URL: str = ""  # Optional webhook URL for production (e.g., https://yourdomain.com/telegram/webhook)
+    WEB_APP_URL: str = "http://localhost:3000"  # Frontend URL for authentication links
+
+# Instructions:
+# 1. Open src/api/config.py
+# 2. Find the line: DEFAULT_TELEGRAM_CHATS: List[str] = []
+# 3. Add the two new lines above after it
+# 4. Save the file
+
+# Example:
+# # Telegram notification settings
+# TELEGRAM_ENABLED: bool = False
+# TELEGRAM_BOT_TOKEN: str = ""
+# DEFAULT_TELEGRAM_CHATS: List[str] = []
+# TELEGRAM_WEBHOOK_URL: str = ""  # <-- ADD THIS
+# WEB_APP_URL: str = "http://localhost:3000"  # <-- ADD THIS
