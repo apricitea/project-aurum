@@ -59,7 +59,7 @@ async def root():
     return {"message": "Indonesian Quantitative Trading System API", "status": "running"}
 
 # Authentication endpoints
-@app.post("/auth/login")
+@app.post("/api/auth/login")
 async def login(credentials: Dict[str, str]):
     """Simple login endpoint"""
     logger.info(f"Login attempt received: {credentials}")
@@ -79,13 +79,13 @@ async def login(credentials: Dict[str, str]):
     else:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
-@app.get("/auth/me")
+@app.get("/api/auth/me")
 async def get_current_user():
     """Get current user info"""
     return MOCK_USER
 
 # Trading endpoints
-@app.get("/signals/daily")
+@app.get("/api/signals/daily")
 async def get_daily_signals():
     """Get daily trading signals"""
     return {
@@ -150,7 +150,7 @@ async def get_daily_signals():
         "generated_at": datetime.now().isoformat()
     }
 
-@app.get("/portfolio/summary")
+@app.get("/api/portfolio/summary")
 async def get_portfolio_summary():
     """Get portfolio summary"""
     return {
@@ -173,54 +173,64 @@ async def get_portfolio_summary():
         "last_updated": datetime.now().isoformat()
     }
 
-@app.get("/portfolio/positions")
+@app.get("/api/portfolio/positions")
 async def get_positions():
     """Get current positions"""
     return [
         {
+            "id": 1,
             "stock_code": "BBCA.JK",
             "quantity": 10000,
             "average_price": 8500,
             "current_price": 8750,
+            "sector": "Banking",
             "market_value": 87500000,
             "unrealized_pnl": 2500000,
-            "unrealized_pnl_percent": 2.94
+            "unrealized_pnl_percent": 2.94,
+            "position_size_percent": 8.75,
+            "last_updated": datetime.now().isoformat()
         },
         {
+            "id": 2,
             "stock_code": "BBRI.JK",
             "quantity": 15000,
             "average_price": 4400,
             "current_price": 4580,
+            "sector": "Banking",
             "market_value": 68700000,
             "unrealized_pnl": 2700000,
-            "unrealized_pnl_percent": 4.09
+            "unrealized_pnl_percent": 4.09,
+            "position_size_percent": 6.87,
+            "last_updated": datetime.now().isoformat()
         }
     ]
 
-@app.get("/alerts")
+@app.get("/api/alerts")
 async def get_alerts():
     """Get recent alerts"""
     return [
         {
             "id": 1,
-            "type": "PRICE_TARGET",
+            "alert_type": "PRICE_TARGET",
             "message": "BBCA reached target price of 8750",
             "priority": "high",
             "status": "active",
             "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat(),
             "stock_code": "BBCA.JK"
         },
         {
             "id": 2,
-            "type": "RISK_WARNING",
+            "alert_type": "RISK_WARNING",
             "message": "Portfolio concentration risk detected",
             "priority": "medium",
             "status": "active",
-            "created_at": datetime.now().isoformat()
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
         }
     ]
 
-@app.get("/market/status")
+@app.get("/api/market/status")
 async def get_market_status():
     """Get market status"""
     now = datetime.now()
@@ -237,7 +247,7 @@ async def get_market_status():
         "next_close": "2024-01-01T15:49:00"
     }
 
-@app.get("/risk/overview")
+@app.get("/api/risk/overview")
 async def get_risk_overview():
     """Get risk overview"""
     return {
@@ -270,6 +280,43 @@ async def get_risk_overview():
         "monitoring_status": "active",
         "last_check": datetime.now().isoformat(),
         "portfolio_risk_score": 3.2
+    }
+
+@app.get("/api/backtest/results/{backtest_id}")
+async def get_backtest_results(backtest_id: str):
+    """Get backtest results by ID"""
+    return await get_backtesting_performance()
+
+@app.get("/api/analytics/performance")
+async def get_analytics_performance(days: int = 30):
+    """Get performance analytics"""
+    return {
+        "period_days": days,
+        "total_signals": 245,
+        "signal_type_distribution": {
+            "BUY": 98,
+            "SELL": 87,
+            "HOLD": 60
+        },
+        "avg_confidence": 0.725,
+        "avg_position_size": 4.2,
+        "avg_daily_signals": 8.2,
+        "daily_signal_counts": {
+            "2024-01-01": 8,
+            "2024-01-02": 7,
+            "2024-01-03": 9
+        },
+        "performance_metrics": {
+            "period_days": days,
+            "total_return": 18.5,
+            "annualized_return": 22.3,
+            "volatility": 12.8,
+            "sharpe_ratio": 1.45,
+            "max_drawdown": 8.2,
+            "win_rate": 67.5,
+            "avg_trade_return": 2.85
+        },
+        "analysis_date": datetime.now().isoformat()
     }
 
 @app.get("/backtesting/performance")
@@ -351,19 +398,6 @@ async def get_backtesting_performance():
             "period_end": "2024-09-27",
             "generated_at": datetime.now().isoformat()
         }
-    }
-
-@app.get("/analytics/performance")
-async def get_performance():
-    """Get performance analytics"""
-    return {
-        "total_return": 18.5,
-        "annual_return": 22.3,
-        "sharpe_ratio": 1.45,
-        "max_drawdown": 8.2,
-        "win_rate": 67.5,
-        "profit_factor": 2.1,
-        "daily_returns": [1.2, -0.8, 2.1, 0.5, 1.8, -1.1, 2.3]
     }
 
 if __name__ == "__main__":
