@@ -15,8 +15,52 @@ import os
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, Float, Boolean, JSON, Text, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
-from sqlalchemy.dialects.postgresql import UUID, JSONB
+from sqlalchemy.dialects.postgresql import UUID, JSONB as PostgreSQL_JSONB
+from sqlalchemy.types import TypeDecorator
 import uuid
+
+# Create a cross-database JSONB type that works with both PostgreSQL and SQLite
+class JSONB(TypeDecorator):
+    """Platform-independent JSONB type. Uses JSONB for PostgreSQL, JSON for others."""
+    impl = JSON
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            return dialect.type_descriptor(PostgreSQL_JSONB())
+        else:
+            return dialect.type_descriptor(JSON())
+
+
+# Create a cross-database UUID type
+class GUID(TypeDecorator):
+    """Platform-independent GUID type. Uses UUID for PostgreSQL, String for others."""
+    impl = String(36)
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == 'postgresql':
+            from sqlalchemy.dialects.postgresql import UUID as PostgreSQL_UUID
+            return dialect.type_descriptor(PostgreSQL_UUID(as_uuid=True))
+        else:
+            return dialect.type_descriptor(String(36))
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        elif dialect.name == 'postgresql':
+            return str(value) if not isinstance(value, uuid.UUID) else value
+        else:
+            return str(value) if not isinstance(value, str) else value
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        else:
+            if not isinstance(value, uuid.UUID):
+                value = uuid.UUID(value)
+            return value
+
 
 from .config import settings
 
@@ -30,7 +74,7 @@ class User(Base):
     """User model for authentication and authorization"""
     __tablename__ = "users"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
     username = Column(String(50), unique=True, nullable=False)
     email = Column(String(100), unique=True, nullable=False)
     password_hash = Column(String(255), nullable=False)
@@ -56,11 +100,11 @@ class Alert(Base):
     status = Column(String(20), nullable=False, default="active")
     meta_data = Column(JSONB, default={})
     stock_code = Column(String(10))
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    user_id = Column(GUID, ForeignKey("users.id"))
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     acknowledged_at = Column(DateTime)
-    acknowledged_by = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    acknowledged_by = Column(GUID, ForeignKey("users.id"))
     expires_at = Column(DateTime)
 
 
@@ -100,7 +144,7 @@ class Portfolio(Base):
     unrealized_pnl = Column(Float)
     position_size_percent = Column(Float)
     last_updated = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-    user_id = Column(UUID(as_uuid=True), ForeignKey("users.id"))
+    user_id = Column(GUID, ForeignKey("users.id"))
 
 
 class RiskAlert(Base):
