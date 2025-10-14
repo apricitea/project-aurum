@@ -3,7 +3,18 @@ Database Extensions for Daily Stock Price Data
 Enhanced tables for historical daily prices, stock metadata, and ETL tracking
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, Float, Boolean, Date, Index, UniqueConstraint, Text
+from sqlalchemy import (
+    Column,
+    Integer,
+    String,
+    DateTime,
+    Float,
+    Boolean,
+    Date,
+    Index,
+    UniqueConstraint,
+    Text,
+)
 from sqlalchemy.types import JSON
 from datetime import datetime
 import uuid
@@ -264,4 +275,154 @@ class DataQualityMetric(Base):
 
     __table_args__ = (
         Index('idx_quality_date_category', 'metric_date', 'metric_category', 'is_passing'),
+    )
+
+
+class IntradayStockPrice(Base):
+    """
+    High-resolution OHLCV data for intraday analysis and AMT workflows
+    Stores multi-interval bars sourced from public APIs or scrapers
+    """
+    __tablename__ = "intraday_stock_prices"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    stock_code = Column(String(10), nullable=False, index=True)
+    timestamp = Column(DateTime, nullable=False, index=True)
+    interval = Column(String(10), nullable=False, index=True)  # e.g., 1m,5m,15m,1h
+
+    # OHLCV data
+    open_price = Column(Float, nullable=False)
+    high_price = Column(Float, nullable=False)
+    low_price = Column(Float, nullable=False)
+    close_price = Column(Float, nullable=False)
+    volume = Column(Float, nullable=False)
+    vwap = Column(Float)
+    trade_count = Column(Integer)
+    turnover_value = Column(Float)
+
+    # Provenance
+    session_date = Column(Date, index=True)  # Trading date for fast partitioning
+    data_source = Column(String(50), default="yfinance")
+    ingestion_id = Column(GUID, index=True)  # Link back to DataRefreshLog
+    quality_score = Column(Float)
+
+    # Metadata for scraping stats, retry info, anomalies
+    meta_data = Column(JSONB, default={})
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint('stock_code', 'timestamp', 'interval', name='uq_intraday_stock_ts_interval'),
+        Index('idx_intraday_stock_date', 'session_date', 'stock_code', 'interval'),
+        Index('idx_intraday_source_quality', 'data_source', 'quality_score'),
+    )
+
+
+class MarketNewsArticle(Base):
+    """
+    Normalized news and narrative data for downstream LLM agents and analytics
+    Stores full-text payloads with sentiment tagging and metadata
+    """
+    __tablename__ = "market_news_articles"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    stock_codes = Column(JSONB, index=True)  # Symbols mentioned in the article
+    sector_tags = Column(JSONB)
+    country = Column(String(10), default="ID")
+
+    title = Column(String(500), nullable=False)
+    summary = Column(Text)
+    content = Column(Text)
+    language = Column(String(10), default="en")
+
+    source = Column(String(100), nullable=False, index=True)
+    source_url = Column(String(500), nullable=False, unique=True)
+    author = Column(String(200))
+
+    published_at = Column(DateTime, index=True)
+    fetched_at = Column(DateTime, default=datetime.utcnow, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    sentiment_score = Column(Float)
+    sentiment_label = Column(String(20))
+    embedding_vector = Column(JSONB)  # store vector as list; move to vector DB if needed
+
+    topics = Column(JSONB)
+    meta_data = Column(JSONB, default={})
+
+    __table_args__ = (
+        Index('idx_news_stock_codes', 'stock_codes', postgresql_using='gin'),
+        Index('idx_news_topics', 'topics', postgresql_using='gin'),
+        Index('idx_news_published_at', 'published_at'),
+        Index('idx_news_sentiment', 'sentiment_label', 'published_at'),
+    )
+
+
+class FundamentalReport(Base):
+    """
+    Raw financial filings metadata for reproducible fundamental parsing
+    Links original documents with parsed metrics in StockFundamentals
+    """
+    __tablename__ = "fundamental_reports"
+
+    id = Column(GUID, primary_key=True, default=uuid.uuid4)
+    stock_code = Column(String(10), nullable=False, index=True)
+    report_date = Column(Date, nullable=False, index=True)
+    report_type = Column(String(20), nullable=False)  # annual, quarterly, corporate
+    period_start = Column(Date)
+    period_end = Column(Date)
+
+    document_type = Column(String(50))  # pdf, html, xbrl
+    source = Column(String(100), nullable=False)
+    source_url = Column(String(500))
+    storage_path = Column(String(500))  # location in object storage / filesystem
+    content_hash = Column(String(128), unique=True)  # hash for deduplication
+
+    is_parsed = Column(Boolean, default=False, index=True)
+    parsing_errors = Column(JSONB)
+
+    fetched_at = Column(DateTime, default=datetime.utcnow)
+    meta_data = Column(JSONB, default={})
+
+    __table_args__ = (
+        UniqueConstraint('stock_code', 'report_date', 'report_type', 'source', name='uq_fundamental_report'),
+        Index('idx_reports_parsed_status', 'is_parsed', 'report_type'),
+    )
+
+
+class AuctionMarketProfile(Base):
+    """Daily Auction Market Theory profile metrics per stock."""
+
+    __tablename__ = "auction_market_profiles"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    stock_code = Column(String(10), nullable=False, index=True)
+    session_date = Column(Date, nullable=False, index=True)
+
+    point_of_control = Column(Float, nullable=False)
+    value_area_high = Column(Float, nullable=False)
+    value_area_low = Column(Float, nullable=False)
+    initial_balance_high = Column(Float)
+    initial_balance_low = Column(Float)
+    close_price = Column(Float)
+    open_price = Column(Float)
+
+    profile_type = Column(String(50))  # trend_up, trend_down, neutral, double_distribution, non_trend
+    excess = Column(Boolean, default=False)
+    single_prints = Column(JSONB)
+
+    total_volume = Column(Float)
+    session_range = Column(Float)
+    vwap = Column(Float)
+
+    metrics = Column(JSONB, default={})
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint('stock_code', 'session_date', name='uq_amt_profile'),
+        Index('idx_amt_stock_date', 'stock_code', 'session_date'),
+        Index('idx_amt_profile_type', 'profile_type', 'session_date'),
     )

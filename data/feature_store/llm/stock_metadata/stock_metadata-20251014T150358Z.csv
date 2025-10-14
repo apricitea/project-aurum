@@ -1,0 +1,4 @@
+stock_code,company_name,sector,industry,market_cap_category,is_lq45,yahoo_symbol
+BBCA,Bank Central Asia Tbk,Banking,Commercial Banks,Large,True,BBCA.JK
+BBRI,Bank Rakyat Indonesia Tbk,Banking,Commercial Banks,Large,True,BBRI.JK
+TLKM,Telkom Indonesia Tbk,Telecommunications,Telecom Services,Large,True,TLKM.JK

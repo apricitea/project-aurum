@@ -8,6 +8,7 @@ import MarketOverview from '@/components/dashboard/MarketOverview';
 import AlertsPanel from '@/components/dashboard/AlertsPanel';
 import PerformanceChart from '@/components/dashboard/PerformanceChart';
 import RealTimeUpdates from '@/components/dashboard/RealTimeUpdates';
+import MarketStructureInsights from '@/components/dashboard/MarketStructureInsights';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { formatDateTime } from '@/lib/utils';
@@ -305,9 +306,10 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Portfolio Overview - Full Width */}
-      <div className="mt-8">
+      {/* Portfolio & Market Structure Insights */}
+      <div className="mt-8 space-y-6">
         <PortfolioOverview />
+        <MarketStructureInsights />
       </div>
     </div>
   );

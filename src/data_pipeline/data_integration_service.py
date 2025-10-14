@@ -9,10 +9,17 @@ import numpy as np
 from datetime import date, datetime, timedelta
 from typing import List, Dict, Optional, Tuple
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, func
+from sqlalchemy import and_, func, or_
 import logging
 
-from ..api.database_extensions import DailyStockPrice, StockMaster, DataRefreshLog
+from ..api.database_extensions import (
+    DailyStockPrice,
+    StockFundamentals,
+    MarketNewsArticle,
+    AuctionMarketProfile,
+    StockMaster,
+    DataRefreshLog,
+)
 from ..api.database import MarketData
 
 logger = logging.getLogger(__name__)
@@ -136,28 +143,179 @@ class DataIntegrationService:
             logger.error(f"Failed to get stock metadata: {str(e)}")
             return pd.DataFrame()
 
+    def get_fundamental_dataframe(
+        self,
+        stock_codes: Optional[List[str]] = None,
+        years: int = 5
+    ) -> pd.DataFrame:
+        """
+        Retrieve structured fundamental metrics for specified stocks.
+        """
+        try:
+            query = self.session.query(StockFundamentals)
+
+            if stock_codes:
+                query = query.filter(StockFundamentals.stock_code.in_(stock_codes))
+
+            cutoff_date = date.today() - timedelta(days=365 * years)
+            query = query.filter(StockFundamentals.report_date >= cutoff_date)
+
+            records = query.order_by(
+                StockFundamentals.stock_code,
+                StockFundamentals.report_date.desc()
+            ).all()
+
+            data = []
+            for record in records:
+                data.append({
+                    'stock_code': record.stock_code,
+                    'report_date': record.report_date,
+                    'report_type': record.report_type,
+                    'market_cap': record.market_cap,
+                    'pe_ratio': record.pe_ratio,
+                    'pb_ratio': record.pb_ratio,
+                    'ps_ratio': record.ps_ratio,
+                    'dividend_yield': record.dividend_yield,
+                    'revenue': record.revenue,
+                    'net_income': record.net_income,
+                    'ebitda': record.ebitda,
+                    'gross_profit': record.gross_profit,
+                    'operating_income': record.operating_income,
+                    'gross_margin': record.gross_margin,
+                    'operating_margin': record.operating_margin,
+                    'profit_margin': record.profit_margin,
+                    'total_assets': record.total_assets,
+                    'total_liabilities': record.total_liabilities,
+                    'total_equity': record.total_equity,
+                    'cash_and_equivalents': record.cash_and_equivalents,
+                    'total_debt': record.total_debt,
+                    'current_ratio': record.current_ratio,
+                    'debt_to_equity': record.debt_to_equity,
+                    'return_on_equity': record.return_on_equity,
+                    'return_on_assets': record.return_on_assets,
+                    'earnings_per_share': record.earnings_per_share,
+                    'book_value_per_share': record.book_value_per_share,
+                    'data_source': record.data_source
+                })
+
+            return pd.DataFrame(data)
+
+        except Exception as e:
+            logger.error(f"Failed to get fundamental data: {str(e)}")
+            return pd.DataFrame()
+
+    def get_recent_news_dataframe(
+        self,
+        stock_codes: Optional[List[str]] = None,
+        days: int = 14
+    ) -> pd.DataFrame:
+        """
+        Retrieve recent news articles for downstream sentiment and LLM usage.
+        """
+        try:
+            query = self.session.query(MarketNewsArticle)
+
+            if stock_codes:
+                filters = [
+                    MarketNewsArticle.stock_codes.contains([code])
+                    for code in stock_codes
+                ]
+                query = query.filter(or_(*filters))
+
+            cutoff = datetime.utcnow() - timedelta(days=days)
+            query = query.filter(MarketNewsArticle.published_at >= cutoff)
+
+            articles = query.order_by(MarketNewsArticle.published_at.desc()).all()
+
+            data = []
+            for article in articles:
+                data.append({
+                    'stock_codes': article.stock_codes,
+                    'title': article.title,
+                    'summary': article.summary,
+                    'content': article.content,
+                    'source': article.source,
+                    'source_url': article.source_url,
+                    'published_at': article.published_at,
+                    'sentiment_score': article.sentiment_score,
+                    'sentiment_label': article.sentiment_label,
+                    'language': article.language,
+                    'topics': article.topics
+                })
+
+            return pd.DataFrame(data)
+
+        except Exception as e:
+            logger.error(f"Failed to get news data: {str(e)}")
+            return pd.DataFrame()
+
+    def get_amt_dataframe(
+        self,
+        stock_codes: Optional[List[str]] = None,
+        days: int = 30
+    ) -> pd.DataFrame:
+        """Retrieve recently computed Auction Market Theory profiles."""
+        try:
+            query = self.session.query(AuctionMarketProfile)
+
+            if stock_codes:
+                query = query.filter(AuctionMarketProfile.stock_code.in_(stock_codes))
+
+            cutoff = date.today() - timedelta(days=days)
+            query = query.filter(AuctionMarketProfile.session_date >= cutoff)
+
+            profiles = query.order_by(
+                AuctionMarketProfile.stock_code,
+                AuctionMarketProfile.session_date.desc()
+            ).all()
+
+            data = []
+            for profile in profiles:
+                data.append({
+                    'stock_code': profile.stock_code,
+                    'session_date': profile.session_date,
+                    'point_of_control': profile.point_of_control,
+                    'value_area_high': profile.value_area_high,
+                    'value_area_low': profile.value_area_low,
+                    'initial_balance_high': profile.initial_balance_high,
+                    'initial_balance_low': profile.initial_balance_low,
+                    'profile_type': profile.profile_type,
+                    'total_volume': profile.total_volume,
+                    'vwap': profile.vwap,
+                    'session_range': profile.session_range,
+                    'close_price': profile.close_price,
+                    'open_price': profile.open_price,
+                    'single_prints': profile.single_prints,
+                    'metrics': profile.metrics
+                })
+
+            return pd.DataFrame(data)
+
+        except Exception as e:
+            logger.error(f"Failed to get AMT data: {str(e)}")
+            return pd.DataFrame()
+
     def prepare_feature_data_for_ml(
         self,
         stock_codes: Optional[List[str]] = None,
-        lookback_days: int = 252
+        lookback_days: int = 252,
+        include_fundamentals: bool = True,
+        include_news: bool = False
     ) -> Dict[str, pd.DataFrame]:
         """
         Prepare complete dataset for ML feature engineering
 
         Returns:
-            Dictionary with 'price_data', 'fundamental_data', 'metadata'
+            Dictionary with 'price_data', 'fundamental_data', 'metadata', and optional 'news_data'
         """
         try:
-            # Get price data
             price_data = self.get_latest_prices_dataframe(
                 stock_codes=stock_codes,
                 days=lookback_days
             )
 
-            # Get metadata
             metadata = self.get_stock_metadata_dataframe(stock_codes=stock_codes)
 
-            # Merge price data with metadata (sector info needed for features)
             if not price_data.empty and not metadata.empty:
                 price_data = price_data.merge(
                     metadata[['stock_code', 'sector', 'industry']],
@@ -165,10 +323,20 @@ class DataIntegrationService:
                     how='left'
                 )
 
+            fundamental_data = self.get_fundamental_dataframe(stock_codes=stock_codes) \
+                if include_fundamentals else pd.DataFrame()
+
+            news_data = self.get_recent_news_dataframe(stock_codes=stock_codes) \
+                if include_news else pd.DataFrame()
+
+            amt_data = self.get_amt_dataframe(stock_codes=stock_codes)
+
             return {
                 'price_data': price_data,
-                'fundamental_data': pd.DataFrame(),  # TODO: Add fundamentals
-                'metadata': metadata
+                'fundamental_data': fundamental_data,
+                'metadata': metadata,
+                'news_data': news_data,
+                'amt_data': amt_data
             }
 
         except Exception as e:
@@ -176,7 +344,9 @@ class DataIntegrationService:
             return {
                 'price_data': pd.DataFrame(),
                 'fundamental_data': pd.DataFrame(),
-                'metadata': pd.DataFrame()
+                'metadata': pd.DataFrame(),
+                'news_data': pd.DataFrame(),
+                'amt_data': pd.DataFrame()
             }
 
     def get_latest_prices_for_stocks(

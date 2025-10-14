@@ -1,0 +1,12 @@
+[
+  {
+    "name": "stock_metadata",
+    "category": "llm",
+    "version": "20251014T150626Z",
+    "path": "llm/stock_metadata/stock_metadata-20251014T150626Z.csv",
+    "created_at": "2025-10-14T15:06:26.668473",
+    "metadata": {
+      "source": "database"
+    }
+  }
+]

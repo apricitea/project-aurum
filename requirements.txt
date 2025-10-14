@@ -50,6 +50,13 @@ scipy==1.14.1
 # Machine Learning
 xgboost==2.1.2
 
+# LLM Agent Framework
+langchain==0.3.7
+langchain-openai==0.2.6
+langgraph==0.4.8
+langchain-google-genai==1.0.7
+pyarrow==18.0.0
+
 # WebSocket support
 websockets==14.1
 

@@ -9,16 +9,37 @@
 
 ## 🚀 Quick Start
 
+Project Aurum now standardises on [uv](https://github.com/astral-sh/uv) for all Python dependency and virtual-env management.
+
 ```bash
-# Clone and start
+# Clone and bootstrap
 git clone https://github.com/yourusername/project-aurum.git
 cd project-aurum
-docker-compose up -d
 
-# Access
-# API: http://localhost:8000
-# Dashboard: http://localhost:3000
+# Create your environment and install dependencies
+uv sync
+
+# Run database bootstrap (creates tables & seeds IDX master data)
+uv run python scripts/setup_stock_data_pipeline.py
+
+# Optional: execute unified data pipeline (requires outbound network access)
+uv run python - <<'PY'
+from datetime import date
+from src.api.config import settings
+from src.data_pipeline.unified_pipeline import UnifiedDataPipeline, PipelineRunConfig
+pipeline = UnifiedDataPipeline(db_url=settings.get_database_url())
+pipeline.run_end_of_day(PipelineRunConfig())
+PY
+
+# Launch stack
+docker-compose up -d
 ```
+
+Access endpoints once services are running:
+- API: `http://localhost:8000`
+- Dashboard: `http://localhost:3000`
+
+> ℹ️ If you previously relied on `pip`/`poetry`, remove those steps and always use `uv sync` (`uv run <command>` for execution) to avoid divergent lockfiles.
 
 ## 📚 Documentation
 
@@ -121,6 +142,24 @@ project-aurum/
 | 🐳 **Deployment** | `infrastructure/docker/` | Production configs |
 | 🔧 **Dev Tools** | `tools/` | Scripts, linting, testing |
 | ⚙️ **Configuration** | Root + `.env` | Environment variables |
+
+## 🔐 Environment Variables & Credentials
+
+Populate the following keys in a `.env` file (see [`docs/operations/credentials_checklist.md`](docs/operations/credentials_checklist.md) for current status and guidance):
+
+| Variable | Purpose | Required For | Notes |
+|----------|---------|--------------|-------|
+| `DB_URL` | SQLAlchemy connection string | All services | Defaults to `sqlite:///data/trading_system.db` for local runs |
+| `GOOGLE_API_KEY` | Gemini (Google Generative AI) access | LLM agents | Already set to use Gemini; supply your production key |
+| `ALPHA_VANTAGE_API_KEY` | Fundamentals & news ingestion | Data pipeline | Required for fundamentals; leave blank to skip |
+| `EMAIL_ENABLED`, `EMAIL_CONFIG` | Outbound email alerts | Notifications | Disable or provide SMTP credentials |
+| `TELEGRAM_ENABLED`, `TELEGRAM_BOT_TOKEN` | Telegram alerts | Notifications | Disable or provide bot token |
+| `SMS_ENABLED`, `TWILIO_CONFIG` | SMS alerts | Notifications | Disable or provide Twilio credentials |
+| `IDX_API_KEY` | Official IDX data | Optional feeds | Leave blank to rely on public sources |
+| `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` | Alternative LLM backends | Optional | Only needed if switching providers |
+
+Additional optional keys (e.g., Redis, webhook URLs) retain legacy defaults; fill them if those integrations are active.
+
 
 ## 🎯 Indonesian Market Focus
 

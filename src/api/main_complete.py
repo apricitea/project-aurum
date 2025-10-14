@@ -3,6 +3,7 @@ Complete FastAPI Application with All Dashboard Endpoints
 Extends the main API with market data, analytics, and dashboard-specific endpoints
 """
 
+import asyncio
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
@@ -21,6 +22,8 @@ from .signal_service import SignalService
 from .risk_monitor import RiskMonitor
 from .schemas import *
 from .config import settings
+from ..domains.ai_research import ResearchOrchestrator, ResearchConfig
+from ..domains.market_data.application.amt_service import AuctionMarketTheoryService
 
 # Import data integration service
 import sys
@@ -35,6 +38,7 @@ logger = logging.getLogger(__name__)
 alert_engine: AlertEngine = None
 signal_service: SignalService = None
 risk_monitor: RiskMonitor = None
+research_orchestrator: ResearchOrchestrator = None
 db_manager: DatabaseManager = None
 
 # Database session for data integration
@@ -54,7 +58,7 @@ def get_db_session():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application lifespan management"""
-    global alert_engine, signal_service, risk_monitor, db_manager, engine, SessionLocal
+    global alert_engine, signal_service, risk_monitor, research_orchestrator, db_manager, engine, SessionLocal
 
     logger.info("Starting Indonesian Quantitative Trading System...")
 
@@ -78,6 +82,7 @@ async def lifespan(app: FastAPI):
     alert_engine = AlertEngine(db_manager)
     signal_service = SignalService(db_manager)
     risk_monitor = RiskMonitor(db_manager)
+    research_orchestrator = ResearchOrchestrator(SessionLocal)
 
     await alert_engine.initialize()
     await signal_service.initialize()
@@ -539,6 +544,84 @@ async def get_available_stocks(
     except Exception as e:
         logger.error(f"Failed to get stocks: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve stocks")
+
+
+# ============================================================================
+# AI RESEARCH ENDPOINTS
+# ============================================================================
+
+
+@app.post("/ai/research/{stock_code}", response_model=AIResearchReportResponse, tags=["AI Research"])
+async def generate_ai_research_report(
+    stock_code: str,
+    trade_date: Optional[date] = None,
+    notes: Optional[str] = None,
+    current_user: User = Depends(get_current_user),
+):
+    """Run LLM agent research for the requested stock."""
+    if research_orchestrator is None:
+        raise HTTPException(status_code=503, detail="Research orchestrator unavailable")
+
+    target_date = trade_date or date.today()
+    config = ResearchConfig(stock_code=stock_code.upper(), trade_date=target_date, notes=notes)
+
+    loop = asyncio.get_running_loop()
+    report = await loop.run_in_executor(None, lambda: research_orchestrator.run(config))
+
+    return AIResearchReportResponse(
+        stock_code=report.stock_code,
+        trade_date=report.trade_date,
+        analyst_notes=report.analyst_notes,
+        debate_summary=report.debate_summary,
+        risk_assessment=report.risk_assessment,
+        final_recommendation=report.final_recommendation,
+        conviction=report.conviction,
+        timestamp=report.timestamp,
+    )
+
+
+# ============================================================================
+# AUCTION MARKET THEORY ENDPOINTS
+# ============================================================================
+
+
+@app.get(
+    "/market/amt/{stock_code}",
+    response_model=List[AuctionMarketProfileResponse],
+    tags=["Market Data"],
+)
+async def get_amt_profiles(
+    stock_code: str,
+    limit: int = 10,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+):
+    """Retrieve recent Auction Market Theory profiles for a stock."""
+    service = AuctionMarketTheoryService(db)
+    profiles = service.latest_profiles(stock_code.upper(), limit=limit)
+    return [
+        AuctionMarketProfileResponse.model_validate(profile, from_attributes=True)
+        for profile in profiles
+    ]
+
+
+@app.get(
+    "/market/amt/{stock_code}/{session_date}",
+    response_model=AuctionMarketProfileResponse,
+    tags=["Market Data"],
+)
+async def get_amt_profile_by_date(
+    stock_code: str,
+    session_date: date,
+    db: Session = Depends(get_db_session),
+    current_user: User = Depends(get_current_user),
+):
+    """Retrieve a specific Auction Market Theory profile."""
+    service = AuctionMarketTheoryService(db)
+    profile = service.get_profile(stock_code.upper(), session_date)
+    if not profile:
+        raise HTTPException(status_code=404, detail="Auction profile not found")
+    return AuctionMarketProfileResponse.model_validate(profile, from_attributes=True)
 
 
 if __name__ == "__main__":

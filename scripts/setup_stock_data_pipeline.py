@@ -242,16 +242,12 @@ def main():
     logger.info("="*80)
 
     # Determine database type (PostgreSQL or SQLite)
-    try:
-        from api.config import settings
-        db_url = (
-            f"postgresql://{settings.DB_USER}:{settings.DB_PASSWORD}"
-            f"@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
-        )
-        logger.info("Using PostgreSQL database")
-    except:
-        db_url = "sqlite:///data/trading_system.db"
+    from api.config import settings
+    db_url = settings.get_database_url()
+    if db_url.startswith("sqlite"):
         logger.info("Using SQLite database (local development)")
+    else:
+        logger.info("Using PostgreSQL database")
 
     # Create engine and session
     engine = create_engine(db_url, echo=False)

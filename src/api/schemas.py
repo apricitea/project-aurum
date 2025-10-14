@@ -422,6 +422,38 @@ class SystemStatusResponse(BaseModel):
     portfolio_positions: int
 
 
+class AIResearchReportResponse(BaseModel):
+    stock_code: str
+    trade_date: date
+    analyst_notes: Dict[str, str]
+    debate_summary: str
+    risk_assessment: str
+    final_recommendation: str
+    conviction: float
+    timestamp: datetime
+
+
+class AuctionMarketProfileResponse(BaseModel):
+    stock_code: str
+    session_date: date
+    point_of_control: float
+    value_area_high: float
+    value_area_low: float
+    initial_balance_high: Optional[float] = None
+    initial_balance_low: Optional[float] = None
+    profile_type: Optional[str] = None
+    total_volume: Optional[float] = None
+    vwap: Optional[float] = None
+    session_range: Optional[float] = None
+    open_price: Optional[float] = None
+    close_price: Optional[float] = None
+    single_prints: Optional[List[float]] = None
+    metrics: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
+
+
 # Configuration Schemas
 class NotificationConfig(BaseModel):
     email_enabled: bool

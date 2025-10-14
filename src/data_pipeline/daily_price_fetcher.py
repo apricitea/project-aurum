@@ -204,13 +204,25 @@ class DailyPriceFetcher:
             )
 
             if df.empty:
-                logger.warning(f"No data returned for {stock_code}")
-                return FetchResult(
-                    stock_code=stock_code,
-                    success=False,
-                    records_fetched=0,
-                    error_message="No data returned from API"
+                logger.warning(f"Primary history call empty for {stock_code}, attempting download fallback")
+                alt_df = yf.download(
+                    yahoo_symbol,
+                    start=start_date,
+                    end=end_date + timedelta(days=1),
+                    interval="1d",
+                    auto_adjust=False,
+                    progress=False,
+                    threads=False
                 )
+                if alt_df.empty:
+                    logger.warning(f"No data returned for {stock_code}")
+                    return FetchResult(
+                        stock_code=stock_code,
+                        success=False,
+                        records_fetched=0,
+                        error_message="No data returned from API"
+                    )
+                df = alt_df
 
             # Validate and clean data
             df = self._validate_and_clean_data(df, stock_code)
