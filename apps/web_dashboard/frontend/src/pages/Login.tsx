@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogIn, Eye, EyeOff, TrendingUp } from 'lucide-react';
 import { useAuthStore } from '@/store/auth';
@@ -7,15 +8,29 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 const Login: React.FC = () => {
+  const navigate = useNavigate();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const { login, isLoading, error } = useAuthStore();
+  const { login, isLoading, error, isAuthenticated } = useAuthStore();
+
+  // Redirect to dashboard if already authenticated or after successful login
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (username.trim() && password.trim()) {
-      await login({ username: username.trim(), password });
+      try {
+        await login({ username: username.trim(), password });
+        // Navigation will happen automatically via useEffect when isAuthenticated changes
+      } catch (err) {
+        // Error is already handled by the store
+        console.error('Login failed:', err);
+      }
     }
   };
 

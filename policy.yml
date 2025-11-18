@@ -1,0 +1,18 @@
+# policy.yml
+on_http_request:
+  # 1. Enforce Google OAuth for all requests
+  - actions:
+    - type: oauth
+      config:
+        provider: google
+  # 2. Block access if the authenticated user's email is NOT in the allowed list
+  - name: restrict_access_multiple
+    expressions:
+      # This expression is TRUE if the email is NOT found in the list.
+      - "!(actions.ngrok.oauth.identity.email in ['alvincnataputra@gmail.com', 'naufala7t@gmail.com'])"
+    actions:
+      # --- CHANGE MADE HERE: Using custom-response instead of deny ---
+      - type: custom-response
+        config:
+          status_code: 403
+          body: "Access Denied. Your email (${actions.ngrok.oauth.identity.email}) is not on the authorized list."

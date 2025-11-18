@@ -78,7 +78,7 @@ class UserProfile(BaseModel):
 
 class CreateUserRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    email: str = Field(..., regex=r'^[^@]+@[^@]+\.[^@]+$')
+    email: str = Field(..., pattern=r'^[^@]+@[^@]+\.[^@]+$')
     password: str = Field(..., min_length=8)
     role: UserRole = UserRole.TRADER
     permissions: Optional[Dict[str, bool]] = None
@@ -356,7 +356,7 @@ class PerformanceAnalyticsResponse(BaseModel):
 # Report Schemas
 class DailyReportRequest(BaseModel):
     date: Optional[date] = None
-    format: str = Field("json", regex="^(json|pdf|csv)$")
+    format: str = Field("json", pattern="^(json|pdf|csv)$")
     include_charts: bool = True
     email_recipients: Optional[List[str]] = None
 
@@ -420,6 +420,38 @@ class SystemStatusResponse(BaseModel):
     last_signal_generation: Optional[datetime] = None
     active_alerts: int
     portfolio_positions: int
+
+
+class AIResearchReportResponse(BaseModel):
+    stock_code: str
+    trade_date: date
+    analyst_notes: Dict[str, str]
+    debate_summary: str
+    risk_assessment: str
+    final_recommendation: str
+    conviction: float
+    timestamp: datetime
+
+
+class AuctionMarketProfileResponse(BaseModel):
+    stock_code: str
+    session_date: date
+    point_of_control: float
+    value_area_high: float
+    value_area_low: float
+    initial_balance_high: Optional[float] = None
+    initial_balance_low: Optional[float] = None
+    profile_type: Optional[str] = None
+    total_volume: Optional[float] = None
+    vwap: Optional[float] = None
+    session_range: Optional[float] = None
+    open_price: Optional[float] = None
+    close_price: Optional[float] = None
+    single_prints: Optional[List[float]] = None
+    metrics: Optional[Dict[str, Any]] = None
+
+    class Config:
+        from_attributes = True
 
 
 # Configuration Schemas

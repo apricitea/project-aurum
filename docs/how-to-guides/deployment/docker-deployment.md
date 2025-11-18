@@ -185,16 +185,14 @@ sudo systemctl restart redis-server
 #### Application Setup
 
 ```bash
-# Install Python dependencies
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+# Install Python dependencies with uv
+uv sync
 
 # Run database migrations
-alembic upgrade head
+uv run alembic upgrade head
 
 # Start application
-gunicorn src.api.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
+uv run gunicorn src.api.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:8000
 ```
 
 ## Post-Deployment Configuration

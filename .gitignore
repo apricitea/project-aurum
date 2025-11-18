@@ -245,3 +245,6 @@ $RECYCLE.BIN/
 
 # Load test results
 load_test_results.log
+
+.history/
+.uv-cache/

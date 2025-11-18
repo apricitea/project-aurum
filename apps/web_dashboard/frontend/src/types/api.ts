@@ -178,6 +178,35 @@ export interface WebSocketMessage {
   timestamp: string;
 }
 
+export interface AIResearchReport {
+  stock_code: string;
+  trade_date: string;
+  analyst_notes: Record<string, string>;
+  debate_summary: string;
+  risk_assessment: string;
+  final_recommendation: string;
+  conviction: number;
+  timestamp: string;
+}
+
+export interface AuctionMarketProfile {
+  stock_code: string;
+  session_date: string;
+  point_of_control: number;
+  value_area_high: number;
+  value_area_low: number;
+  initial_balance_high?: number;
+  initial_balance_low?: number;
+  profile_type?: string;
+  total_volume?: number;
+  vwap?: number;
+  session_range?: number;
+  open_price?: number;
+  close_price?: number;
+  single_prints?: number[];
+  metrics?: Record<string, any>;
+}
+
 // API Response wrapper
 export interface ApiResponse<T> {
   data: T;

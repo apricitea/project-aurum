@@ -26,6 +26,7 @@ class Settings(BaseSettings):
     ALLOWED_ORIGINS: List[str] = ["*"]
 
     # Database settings
+    DB_URL: Optional[str] = None
     DB_HOST: str = "localhost"
     DB_PORT: int = 5432
     DB_NAME: str = "trading_system"
@@ -88,6 +89,7 @@ class Settings(BaseSettings):
     TELEGRAM_ENABLED: bool = False
     TELEGRAM_BOT_TOKEN: str = ""
     DEFAULT_TELEGRAM_CHATS: List[str] = []
+    WEB_APP_URL: str = "http://localhost:3000"
 
     # SMS notification settings (Twilio)
     SMS_ENABLED: bool = False
@@ -140,6 +142,20 @@ class Settings(BaseSettings):
     MOBILE_NOTIFICATIONS: bool = True
     EXPORT_REPORTS: bool = True
 
+    # LLM / Agents configuration
+    LLM_PROVIDER: str = "google"
+    LLM_PRIMARY_MODEL: str = "gpt-4o-mini"
+    LLM_SECONDARY_MODEL: str = "gpt-4.1-mini"
+    LLM_BASE_URL: Optional[str] = None
+    LLM_TEMPERATURE: float = 0.4
+    LLM_TIMEOUT_SECONDS: int = 120
+    LLM_CACHE_ENABLED: bool = True
+    LLM_MAX_TOKENS: int = 4096
+    OPENAI_API_KEY: Optional[str] = None
+    ANTHROPIC_API_KEY: Optional[str] = None
+    GOOGLE_API_KEY: Optional[str] = None
+    LLM_RUN_LOG_PATH: str = "logs/ai_research_runs.jsonl"
+
     @validator('EMAIL_CONFIG', pre=True)
     def parse_email_config(cls, v):
         if isinstance(v, str):
@@ -189,6 +205,8 @@ class Settings(BaseSettings):
 
     def get_database_url(self) -> str:
         """Get database connection URL"""
+        if self.DB_URL:
+            return self.DB_URL
         return (
             f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"

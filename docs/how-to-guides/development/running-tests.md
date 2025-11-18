@@ -324,9 +324,9 @@ pytest tests/performance/ -m "performance and not slow"
 ## Next Steps
 
 ### Immediate Actions
-1. **Install Dependencies**: `pip install -r requirements-dev.txt`
-2. **Run Validation**: `python tests/test_runner.py --validate`
-3. **Execute Tests**: `python tests/test_runner.py --type all --report`
+1. **Install Dependencies**: `uv sync`
+2. **Run Validation**: `uv run python tests/test_runner.py --validate`
+3. **Execute Tests**: `uv run python tests/test_runner.py --type all --report`
 4. **Review Coverage**: Open `htmlcov/index.html`
 
 ### Continuous Improvement

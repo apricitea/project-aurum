@@ -64,12 +64,11 @@ source venv/bin/activate
 # Windows:
 venv\Scripts\activate
 
-# Install development dependencies
-pip install -r requirements-dev.txt
-pip install -e .  # Install project in development mode
+# Install Python dependencies
+uv sync
 
 # Install pre-commit hooks
-pre-commit install
+uv run pre-commit install
 ```
 
 #### 3. Node.js Environment Setup
@@ -280,8 +279,8 @@ project-aurum/
 ├── docs/                       # Documentation
 ├── docker/                     # Docker configurations
 ├── monitoring/                 # Monitoring configs
-├── requirements.txt            # Python dependencies
-├── requirements-dev.txt        # Development dependencies
+├── pyproject.toml              # Python dependencies (uv project file)
+├── uv.lock                     # Locked dependency versions (generate with `uv lock`)
 ├── pyproject.toml             # Python project config
 ├── docker-compose.yml         # Development environment
 └── Makefile                   # Development commands
@@ -442,11 +441,11 @@ git branch -d feature/new-signal-algorithm
 setup:
 	@echo "Setting up development environment..."
 	python -m venv venv
-	./venv/bin/pip install -r requirements-dev.txt
+	uv sync
 	cd frontend && npm install
 
 install-dev:
-	./venv/bin/pip install -r requirements-dev.txt
+	uv sync
 	cd frontend && npm install
 
 start-dev:

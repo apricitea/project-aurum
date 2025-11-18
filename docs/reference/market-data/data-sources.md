@@ -900,8 +900,8 @@ class AlternativeDataSources:
                 )
 
                 # Process sentiment for each article
-                for article in articles:
-                    sentiment_score = self.analyze_indonesian_sentiment(article['content'])
+        for article in articles:
+            sentiment_score = self.analyze_indonesian_sentiment(article['content'])
 
                     news_data.append({
                         'symbol': symbol,
@@ -914,6 +914,8 @@ class AlternativeDataSources:
                     })
 
         return news_data
+
+> **Network requirement:** the open-source pipeline relies on public Yahoo Finance endpoints (`query1.finance.yahoo.com`, `fc.yahoo.com`) and Google News (`news.google.com`) when premium feeds are unavailable. Ensure these hosts are reachable or replace them with enterprise-grade market data sources before enabling automated ingestion.
 
     def analyze_indonesian_sentiment(self, text):
         """Analyze sentiment of Indonesian financial text"""
