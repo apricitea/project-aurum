@@ -78,7 +78,7 @@ class UserProfile(BaseModel):
 
 class CreateUserRequest(BaseModel):
     username: str = Field(..., min_length=3, max_length=50)
-    email: str = Field(..., regex=r'^[^@]+@[^@]+\.[^@]+$')
+    email: str = Field(..., pattern=r'^[^@]+@[^@]+\.[^@]+$')
     password: str = Field(..., min_length=8)
     role: UserRole = UserRole.TRADER
     permissions: Optional[Dict[str, bool]] = None
@@ -356,7 +356,7 @@ class PerformanceAnalyticsResponse(BaseModel):
 # Report Schemas
 class DailyReportRequest(BaseModel):
     date: Optional[date] = None
-    format: str = Field("json", regex="^(json|pdf|csv)$")
+    format: str = Field("json", pattern="^(json|pdf|csv)$")
     include_charts: bool = True
     email_recipients: Optional[List[str]] = None
 

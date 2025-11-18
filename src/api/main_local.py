@@ -18,6 +18,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import desc, func
 
 from .database_sqlite import SQLiteDatabaseManager, get_db
+from . import database_sqlite
 from .database import User, Alert, TradingSignal, Portfolio, MarketData
 from .schemas import *
 
@@ -47,6 +48,7 @@ async def lifespan(app: FastAPI):
     # Initialize database
     db_manager = SQLiteDatabaseManager(db_path="data/trading_system.db")
     await db_manager.initialize()
+    database_sqlite.db_manager = db_manager
 
     logger.info("✅ Database initialized successfully")
     logger.info("📍 Using SQLite database at: data/trading_system.db")

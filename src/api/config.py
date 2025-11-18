@@ -89,6 +89,7 @@ class Settings(BaseSettings):
     TELEGRAM_ENABLED: bool = False
     TELEGRAM_BOT_TOKEN: str = ""
     DEFAULT_TELEGRAM_CHATS: List[str] = []
+    WEB_APP_URL: str = "http://localhost:3000"
 
     # SMS notification settings (Twilio)
     SMS_ENABLED: bool = False
