@@ -153,32 +153,31 @@ ModuleNotFoundError: No module named 'xyz'
    source venv/bin/activate
    ```
 
-2. **Upgrade pip and setuptools:**
+2. **Refresh tooling and resolve dependency drift:**
    ```bash
-   pip install --upgrade pip setuptools wheel
-   pip install -r requirements.txt
+   uv pip install --upgrade pip setuptools wheel
+   uv sync --refresh
    ```
 
 3. **Handle dependency conflicts:**
    ```bash
-   # Create clean environment
-   rm -rf venv
-   python -m venv venv
-   source venv/bin/activate
-   pip install -r requirements-dev.txt
+   # Recreate environment
+   rm -rf .venv
+   uv venv
+   uv sync
 
-   # Or use specific versions
-   pip install pandas==1.5.3 numpy==1.24.3
+   # Install pinned versions when required
+   uv pip install pandas==1.5.3 numpy==1.24.3
    ```
 
 4. **Platform-specific issues:**
    ```bash
    # macOS with M1/M2 chips
    export ARCHFLAGS="-arch arm64"
-   pip install --upgrade --force-reinstall -r requirements.txt
+   uv pip install --force-reinstall .
 
    # Windows with Visual Studio Build Tools
-   pip install --only-binary=all -r requirements.txt
+   uv pip install --only-binary=all .
    ```
 
 ### Node.js Environment Issues
@@ -382,7 +381,7 @@ AttributeError: module 'src.api.main' has no attribute 'app'
    export PYTHONPATH="${PYTHONPATH}:$(pwd)"
 
    # Or install package in development mode
-   pip install -e .
+   uv pip install --editable .
    ```
 
 2. **Verify imports:**

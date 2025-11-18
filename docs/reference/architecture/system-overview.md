@@ -645,23 +645,27 @@ ROLES = {
 ### Container Architecture
 
 ```dockerfile
-# Multi-stage Docker build
-FROM python:3.11-slim as base
+# Multi-stage Docker build with uv
+FROM python:3.13-slim AS base
 WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir uv
 
-FROM base as development
-COPY requirements-dev.txt .
-RUN pip install --no-cache-dir -r requirements-dev.txt
+# Install production dependencies
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
+
+# Development image
+FROM base AS development
+RUN uv sync --frozen
 COPY . .
-CMD ["uvicorn", "src.api.main:app", "--reload", "--host", "0.0.0.0"]
+CMD ["uv", "run", "uvicorn", "src.api.main:app", "--reload", "--host", "0.0.0.0"]
 
-FROM base as production
+# Production image
+FROM base AS production
 COPY . .
 RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
-CMD ["gunicorn", "src.api.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker"]
+CMD ["uv", "run", "gunicorn", "src.api.main:app", "-w", "4", "-k", "uvicorn.workers.UvicornWorker"]
 ```
 
 ### Kubernetes Deployment

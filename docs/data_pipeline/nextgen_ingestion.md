@@ -40,13 +40,46 @@ data/feature_store/
     └── (reserved for auction metrics in Phase 3)
 ```
 
-## 5. Operational Notes
+## 5. Connectivity & Credentials
+- Ensure outbound HTTPS access to the following domains (for Yahoo Finance and Google News fallbacks):
+  - `query1.finance.yahoo.com`, `fc.yahoo.com`
+  - `news.google.com`
+  - `www.alphavantage.co`
+- Provide the required API keys in `.env`:
+  - `GOOGLE_API_KEY` for Gemini-powered agents and news sentiment.
+  - `ALPHA_VANTAGE_API_KEY` for fundamentals ingestion (set `ALPHA_VANTAGE_ENABLED=true`).
+- Optional IDX/OJK scraping requires stable access to `idx.co.id` and official filing portals; configure credentials where applicable.
+- When network access is restricted, disable the affected fetchers via pipeline configuration to avoid partial runs.
+
+## 6. Operational Notes
 - Intraday fetch supports interval rotation; fallback scraper is stubbed for Phase 2 implementation.
 - Fundamentals ingestion throttles API calls (12s) to honour Alpha Vantage free-tier limits.
 - News sentiment prefers FinBERT; when unavailable, lexical heuristics provide deterministic scores.
 - Unified pipeline exports curated datasets for agents (LLM) and models (ML), setting the stage for AMT-derived features.
 
-## 6. Next Steps
+## 7. Readiness Checklist
+1. `uv sync` to install all dependencies from `pyproject.toml` (regenerate `uv.lock` if packages change).
+2. Export credentials: `GOOGLE_API_KEY`, `ALPHA_VANTAGE_API_KEY`, and any IDX feed tokens.
+3. Run `uv run python scripts/setup_stock_data_pipeline.py` to seed `stock_master`.
+4. Execute the unified pipeline with the desired symbols:
+   ```bash
+   uv run python - <<'PY'
+   from datetime import date
+   from src.api.config import settings
+   from src.data_pipeline.unified_pipeline import UnifiedDataPipeline, PipelineRunConfig
+   pipeline = UnifiedDataPipeline(db_url=settings.get_database_url())
+   pipeline.run_end_of_day(PipelineRunConfig(stock_codes=['BBCA','BBRI','TLKM']))
+   PY
+   ```
+5. Verify readiness:
+   ```bash
+   sqlite3 data/trading_system.db "SELECT COUNT(*) FROM daily_stock_prices;"
+   sqlite3 data/trading_system.db "SELECT COUNT(*) FROM intraday_stock_prices;"
+   sqlite3 data/trading_system.db "SELECT COUNT(*) FROM auction_market_profiles;"
+   ```
+   All counts should be > 0 before enabling production signals.
+
+## 8. Next Steps
 1. Implement IDX scraper fallback for resilient intraday coverage.
 2. Parse OJK/IDX filings into `FundamentalReport` storage.
 3. Expand feature store tests & validation hooks for continuous integration.

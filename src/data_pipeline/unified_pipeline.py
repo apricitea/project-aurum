@@ -73,6 +73,11 @@ class UnifiedDataPipeline:
         results, job_id = fetcher.fetch_daily_prices(stock_codes=stock_codes, backfill_days=7)
         successful = len([r for r in results if r.success])
         logger.info("Daily price fetch completed (job=%s). Successful=%s", job_id, successful)
+        if successful == 0:
+            raise RuntimeError(
+                "Daily price fetch returned no data. Verify network access to yahoo finance endpoints "
+                "or adjust data source configuration before continuing."
+            )
 
     def _run_intraday(
         self,
