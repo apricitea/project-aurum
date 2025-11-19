@@ -20,26 +20,19 @@ import {
   getPnLColorClass,
   formatStockCode,
 } from '@/lib/utils';
+// @ts-ignore - Type is used for addPosition function type inference
 import type { Position } from '@/types/api';
 
-interface EditPositionModal {
-  isOpen: boolean;
-  position: Position | null;
-}
 
 const Portfolio: React.FC = () => {
   const {
     portfolio,
     positions,
     fetchPortfolio,
-    updatePosition,
+    addPosition,
     isLoading,
   } = useDashboardStore();
-  
-  const [editModal, setEditModal] = useState<EditPositionModal>({
-    isOpen: false,
-    position: null,
-  });
+
   const [newPosition, setNewPosition] = useState({
     stock_code: '',
     quantity: 0,
@@ -51,26 +44,14 @@ const Portfolio: React.FC = () => {
     fetchPortfolio();
   }, [fetchPortfolio]);
 
-  const handleUpdatePosition = async (position: Position) => {
-    try {
-      await updatePosition({
-        stock_code: position.stock_code,
-        quantity: position.quantity,
-        average_price: position.average_price,
-      });
-      setEditModal({ isOpen: false, position: null });
-    } catch (error) {
-      console.error('Failed to update position:', error);
-    }
-  };
-
+  
   const handleAddPosition = async () => {
     if (!newPosition.stock_code || newPosition.quantity <= 0 || newPosition.average_price <= 0) {
       return;
     }
 
     try {
-      await updatePosition(newPosition);
+      await addPosition(newPosition);
       setNewPosition({ stock_code: '', quantity: 0, average_price: 0 });
       setShowAddForm(false);
     } catch (error) {
@@ -338,10 +319,11 @@ const Portfolio: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
+                          {/* Edit button removed - edit modal functionality not implemented */}
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => setEditModal({ isOpen: true, position })}
+                            disabled
                           >
                             <Edit className="h-4 w-4" />
                           </Button>

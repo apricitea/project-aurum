@@ -7,7 +7,6 @@ import TradingSignals from '@/components/dashboard/TradingSignals';
 import MarketOverview from '@/components/dashboard/MarketOverview';
 import AlertsPanel from '@/components/dashboard/AlertsPanel';
 import PerformanceChart from '@/components/dashboard/PerformanceChart';
-import RealTimeUpdates from '@/components/dashboard/RealTimeUpdates';
 import MarketStructureInsights from '@/components/dashboard/MarketStructureInsights';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';

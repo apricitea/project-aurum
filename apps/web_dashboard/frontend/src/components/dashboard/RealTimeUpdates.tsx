@@ -30,16 +30,6 @@ const RealTimeUpdates: React.FC = () => {
       });
     };
 
-    const handleClose = () => {
-      setIsConnected(false);
-      addUpdate({
-        id: Date.now().toString(),
-        type: 'alert',
-        message: 'Real-time connection lost',
-        timestamp: new Date(),
-      });
-    };
-
     // Subscribe to real-time updates
     const unsubscribeSignal = wsClient.subscribe('signal_update', (data: any) => {
       addUpdate({

@@ -11,7 +11,6 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onSidebarToggle }) => {
   const {
-    marketStatus,
     lastUpdated,
     isLoading,
     loadDashboardData,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   AlertTriangle,
@@ -118,7 +118,7 @@ const Risk: React.FC = () => {
                   <div>
                     <p className="text-sm font-medium text-secondary-600">Diversification</p>
                     <p className="text-2xl font-bold text-success-600">
-                      {formatPercent(riskOverview?.diversification_score / 100 || 0.78)}
+                      {formatPercent((riskOverview?.diversification_score || 78) / 100)}
                     </p>
                     <p className="text-xs text-secondary-500 mt-1">Sector spread</p>
                   </div>
@@ -139,7 +139,7 @@ const Risk: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {riskOverview?.position_risks?.length > 0 ? (
+                  {riskOverview?.position_risks && riskOverview.position_risks.length > 0 ? (
                     riskOverview.position_risks.map((position: any, index: number) => (
                       <motion.div
                         key={position.stock_code}
@@ -184,7 +184,7 @@ const Risk: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-secondary-700">Maximum Drawdown</span>
                     <span className="font-medium text-danger-600">
-                      {formatPercent(riskOverview?.max_drawdown / 100 || -0.15)}
+                      {formatPercent((riskOverview?.max_drawdown || -15) / 100)}
                     </span>
                   </div>
 
@@ -198,7 +198,7 @@ const Risk: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-secondary-700">Portfolio Volatility</span>
                     <span className="font-medium text-warning-600">
-                      {formatPercent(riskOverview?.volatility / 100 || 0.18)}
+                      {formatPercent((riskOverview?.volatility || 18) / 100)}
                     </span>
                   </div>
 

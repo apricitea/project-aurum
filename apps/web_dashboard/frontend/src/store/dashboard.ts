@@ -8,6 +8,7 @@ import type {
   MarketStatus,
   PerformanceAnalytics
 } from '../types/api';
+import { AlertStatus } from '../types/api';
 import { apiClient } from '../lib/api';
 
 interface DashboardState {
@@ -19,6 +20,7 @@ interface DashboardState {
   riskOverview: RiskOverview | null;
   marketStatus: MarketStatus | null;
   performance: PerformanceAnalytics | null;
+  performanceAnalytics: PerformanceAnalytics | null; // Alias for performance
 
   // Loading states
   isLoading: boolean;
@@ -45,6 +47,10 @@ interface DashboardState {
   fetchMarketStatus: () => Promise<void>;
   fetchPerformance: (days?: number) => Promise<void>;
   updateAlertStatus: (alertId: number, status: string, notes?: string) => Promise<void>;
+  acknowledgeAlert: (alertId: number) => Promise<void>;
+  dismissAlert: (alertId: number) => Promise<void>;
+  addPosition: (position: Partial<Position>) => Promise<void>;
+  updatePosition: (positionId: number, updates: Partial<Position>) => Promise<void>;
   clearError: () => void;
 }
 
@@ -57,6 +63,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
   riskOverview: null,
   marketStatus: null,
   performance: null,
+  performanceAnalytics: null,
 
   // Loading states
   isLoading: false,
@@ -144,7 +151,7 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
     set({ isLoadingPerformance: true });
     try {
       const data = await apiClient.getPerformanceAnalytics(days);
-      set({ performance: data, isLoadingPerformance: false });
+      set({ performance: data, performanceAnalytics: data, isLoadingPerformance: false });
     } catch (error) {
       console.error('Failed to fetch performance:', error);
       set({ isLoadingPerformance: false });
@@ -200,5 +207,74 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
 
   clearError: () => {
     set({ error: null });
+  },
+
+  // Alert management methods
+  acknowledgeAlert: async (alertId: number) => {
+    try {
+      // Use the imported apiClient directly
+      await apiClient.updateAlertStatus(alertId, 'acknowledged');
+
+      // Update local state
+      set(state => ({
+        alerts: state.alerts.map(alert =>
+          alert.id === alertId
+            ? { ...alert, status: AlertStatus.ACKNOWLEDGED, acknowledged_at: new Date().toISOString() }
+            : alert
+        )
+      }));
+    } catch (error) {
+      console.error('Failed to acknowledge alert:', error);
+      throw error;
+    }
+  },
+
+  dismissAlert: async (alertId: number) => {
+    try {
+      // Use the imported apiClient directly
+      await apiClient.dismissAlert(alertId);
+
+      // Remove from local state
+      set(state => ({
+        alerts: state.alerts.filter(alert => alert.id !== alertId)
+      }));
+    } catch (error) {
+      console.error('Failed to dismiss alert:', error);
+      throw error;
+    }
+  },
+
+  // Position management methods
+  addPosition: async (position: Partial<Position>) => {
+    try {
+      // Use the imported apiClient directly
+      const newPosition = await apiClient.addPosition(position);
+
+      // Update local state
+      set(state => ({
+        positions: [...state.positions, newPosition]
+      }));
+    } catch (error) {
+      console.error('Failed to add position:', error);
+      set({ error: error instanceof Error ? error.message : 'Failed to add position' });
+      throw error;
+    }
+  },
+
+  updatePosition: async (positionId: number, updates: Partial<Position>) => {
+    try {
+      // Use the imported apiClient directly
+      const updatedPosition = await apiClient.updatePosition(positionId, updates);
+
+      // Update local state
+      set(state => ({
+        positions: state.positions.map(position =>
+          position.id === positionId ? updatedPosition : position
+        )
+      }));
+    } catch (error) {
+      console.error('Failed to update position:', error);
+      throw error;
+    }
   },
 }));

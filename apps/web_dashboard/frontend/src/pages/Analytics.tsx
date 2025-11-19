@@ -4,9 +4,7 @@ import {
   BarChart3,
   PieChart,
   TrendingUp,
-  Calendar,
   Download,
-  Filter,
 } from 'lucide-react';
 import {
   Chart as ChartJS,
@@ -22,7 +20,6 @@ import { Bar, Pie } from 'react-chartjs-2';
 import { useDashboardStore } from '@/store/dashboard';
 import { Button } from '@/components/ui/Button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
-import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import {
   formatIDR,
   formatPercent,
@@ -44,7 +41,6 @@ const Analytics: React.FC = () => {
     performance,
     fetchPerformance,
     portfolio,
-    isLoading,
   } = useDashboardStore();
   
   const [timeFrame, setTimeFrame] = useState(30);
@@ -62,8 +58,8 @@ const Analytics: React.FC = () => {
         datasets: [
           {
             data: [25, 35, 20, 15, 5],
-            backgroundColor: generateChartColors(5, 0.8),
-            borderColor: generateChartColors(5, 1),
+            backgroundColor: generateChartColors(5),
+            borderColor: generateChartColors(5),
             borderWidth: 2,
           },
         ],
@@ -76,8 +72,8 @@ const Analytics: React.FC = () => {
       datasets: [
         {
           data: Object.values(distribution),
-          backgroundColor: generateChartColors(Object.keys(distribution).length, 0.8),
-          borderColor: generateChartColors(Object.keys(distribution).length, 1),
+          backgroundColor: generateChartColors(Object.keys(distribution).length),
+          borderColor: generateChartColors(Object.keys(distribution).length),
           borderWidth: 2,
         },
       ],

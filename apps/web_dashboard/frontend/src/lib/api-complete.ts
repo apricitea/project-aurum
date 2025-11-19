@@ -4,7 +4,6 @@
  */
 
 import type {
-  TradingSignal,
   DailySignalsResponse,
   PortfolioSummary,
   Position,
@@ -54,9 +53,9 @@ class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string> || {}),
     };
 
     if (this.token) {
@@ -223,6 +222,10 @@ class ApiClient {
 
   async getStockAnalytics(stockCode: string, days: number = 30): Promise<any> {
     return this.request(`/analytics/stock/${stockCode}?days=${days}`);
+  }
+
+  async getBacktestingPerformance(): Promise<{ performance: any }> {
+    return this.request('/backtesting/performance');
   }
 
   // ==========================================================================

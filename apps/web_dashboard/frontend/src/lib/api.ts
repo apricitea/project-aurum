@@ -243,6 +243,10 @@ class ApiClient {
   async getBacktestResults(backtestId: string): Promise<any> {
     return this.request(`/backtest/results/${backtestId}`);
   }
+
+  async getBacktestingPerformance(): Promise<{ performance: any }> {
+    return this.request('/backtesting/performance');
+  }
 }
 
 // ============================================================================
@@ -361,6 +365,15 @@ class WebSocketClient {
 
   get isConnected(): boolean {
     return this.ws?.readyState === WebSocket.OPEN;
+  }
+
+  subscribe(eventType: string, handler: WebSocketEventHandler): () => void {
+    this.on(eventType, handler);
+    return () => this.off(eventType, handler);
+  }
+
+  unsubscribe(eventType: string, handler: WebSocketEventHandler): void {
+    this.off(eventType, handler);
   }
 }
 
