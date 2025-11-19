@@ -13,9 +13,14 @@ import type {
   WebSocketMessage,
 } from '@/types/api';
 
+import mockApiClient, { useMockApi, mockWebSocketClient } from './mock-api';
+
 // API Configuration
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '/api';
 const WS_BASE_URL = import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000/ws';
+
+// Check if we should use mock API
+const USE_MOCK_API = useMockApi();
 
 // ============================================================================
 // API Client
@@ -381,5 +386,9 @@ class WebSocketClient {
 // Export singleton instances
 // ============================================================================
 
-export const apiClient = new ApiClient(API_BASE_URL);
-export const wsClient = new WebSocketClient(WS_BASE_URL);
+// Export appropriate client based on configuration
+export const apiClient = USE_MOCK_API ? mockApiClient : new ApiClient(API_BASE_URL);
+export const wsClient = USE_MOCK_API ? mockWebSocketClient : new WebSocketClient(WS_BASE_URL);
+
+// Export mock mode flag for components to check
+export const isMockMode = USE_MOCK_API;
