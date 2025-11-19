@@ -1,6 +1,6 @@
 """
 Database management and models for Indonesian Quantitative Trading Alert System
-Handles PostgreSQL connections, schema management, and data access layer
+Handles PostgreSQL and SQLite connections, schema management, and data access layer
 """
 
 import asyncio
@@ -18,6 +18,7 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB as PostgreSQL_JSONB
 from sqlalchemy.types import TypeDecorator
 import uuid
+from .config import settings
 
 # Create a cross-database JSONB type that works with both PostgreSQL and SQLite
 class JSONB(TypeDecorator):
@@ -223,48 +224,71 @@ class DatabaseManager:
 
     def _build_connection_string(self) -> str:
         """Build database connection string"""
-        return (
-            f"postgresql://{settings.DB_USER}:{settings.DB_PASSWORD}"
-            f"@{settings.DB_HOST}:{settings.DB_PORT}/{settings.DB_NAME}"
-        )
+        # Use the database URL from settings if available
+        return settings.get_database_url()
 
     async def initialize(self):
         """Initialize database connections and create tables"""
         try:
-            # Create asyncpg connection pool
-            self.pool = await asyncpg.create_pool(
-                self._connection_string,
-                min_size=5,
-                max_size=20,
-                command_timeout=60,
-                server_settings={
-                    'jit': 'off',
-                    'application_name': 'trading_alert_system'
-                }
-            )
-
-            # Create SQLAlchemy engine for ORM operations
-            self.engine = create_engine(
-                self._connection_string,
-                pool_size=10,
-                max_overflow=20,
-                pool_pre_ping=True,
-                pool_recycle=3600
-            )
-
-            self.session_factory = sessionmaker(bind=self.engine)
-
-            # Create tables
-            await self.create_tables()
-
-            # Create indexes for performance
-            await self.create_indexes()
+            # Check if using SQLite or PostgreSQL
+            if self._connection_string.startswith("sqlite"):
+                await self._initialize_sqlite()
+            else:
+                await self._initialize_postgresql()
 
             logger.info("Database initialized successfully")
 
         except Exception as e:
             logger.error(f"Failed to initialize database: {str(e)}")
             raise
+
+    async def _initialize_sqlite(self):
+        """Initialize SQLite database"""
+        # SQLite doesn't need asyncpg, just use SQLAlchemy
+        self.engine = create_engine(
+            self._connection_string,
+            echo=False,
+            pool_pre_ping=True
+        )
+
+        self.session_factory = sessionmaker(bind=self.engine)
+
+        # Create tables using SQLAlchemy
+        Base.metadata.create_all(self.engine)
+
+        # SQLite doesn't support asyncpg pool
+        self.pool = None
+
+    async def _initialize_postgresql(self):
+        """Initialize PostgreSQL database"""
+        # Create asyncpg connection pool
+        self.pool = await asyncpg.create_pool(
+            self._connection_string,
+            min_size=5,
+            max_size=20,
+            command_timeout=60,
+            server_settings={
+                'jit': 'off',
+                'application_name': 'trading_alert_system'
+            }
+        )
+
+        # Create SQLAlchemy engine for ORM operations
+        self.engine = create_engine(
+            self._connection_string,
+            pool_size=10,
+            max_overflow=20,
+            pool_pre_ping=True,
+            pool_recycle=3600
+        )
+
+        self.session_factory = sessionmaker(bind=self.engine)
+
+        # Create tables
+        await self.create_tables()
+
+        # Create indexes for performance
+        await self.create_indexes()
 
     async def create_tables(self):
         """Create database tables if they don't exist"""
