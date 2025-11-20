@@ -23,6 +23,9 @@ export enum AlertStatus {
   RESOLVED = 'resolved',
 }
 
+// Type alias for string literal to match mock API usage
+export type AlertStatusType = 'active' | 'acknowledged' | 'dismissed' | 'expired' | 'resolved';
+
 export enum TaskStatus {
   PENDING = 'pending',
   STARTED = 'started',
@@ -60,10 +63,13 @@ export interface TradingSignal {
   stock_code: string;
   sector?: string;
   signal_type: SignalType;
+  signal: string; // For backward compatibility - should be same as signal_type
   composite_score: number;
   confidence: number;
   position_size: number;
   current_price: number;
+  target_price?: number;
+  company_name?: string;
   volume?: number;
   technical_score?: number;
   fundamental_score?: number;
@@ -106,6 +112,10 @@ export interface PortfolioSummary {
   sharpe_ratio?: number;
   max_drawdown?: number;
   last_updated: string;
+  // Additional properties used in components
+  total_value?: number;
+  daily_pnl?: number;
+  positions_count?: number;
 }
 
 export interface Alert {
@@ -113,7 +123,7 @@ export interface Alert {
   alert_type: string;
   message: string;
   priority: AlertPriority;
-  status: AlertStatus;
+  status: AlertStatusType;
   stock_code?: string;
   metadata?: Record<string, any>;
   created_at: string;
@@ -139,6 +149,21 @@ export interface RiskOverview {
   monitoring_status: string;
   last_check?: string;
   portfolio_risk_score?: number;
+  // Additional properties used in components
+  overall_risk_level?: string;
+  value_at_risk?: number;
+  beta?: number;
+  diversification_score?: number;
+  position_risks?: Array<{
+    stock_code: string;
+    risk_score: number;
+    allocation_percent: number;
+  }>;
+  max_drawdown?: number;
+  sharpe_ratio?: number;
+  volatility?: number;
+  correlation?: number;
+  last_updated?: string;
 }
 
 export interface MarketStatus {
@@ -220,4 +245,46 @@ export interface ApiError {
   detail?: string;
   timestamp: string;
   request_id?: string;
+}
+
+// Performance Analytics for Dashboard
+export interface PerformanceAnalytics {
+  period_days: number;
+  total_signals: number;
+  signal_type_distribution: Record<string, number>;
+  avg_confidence: number;
+  avg_position_size: number;
+  avg_daily_signals: number;
+  daily_signal_counts: Record<string, number>;
+  performance_metrics?: PerformanceMetrics;
+  analysis_date: string;
+}
+
+// Settings interface
+export interface Settings {
+  theme: 'light' | 'dark' | 'system';
+  notifications: {
+    alerts: boolean;
+    signals: boolean;
+    portfolio: boolean;
+    email: boolean;
+    push: boolean;
+  };
+  risk: {
+    maxPositionSize: number;
+    maxDrawdown: number;
+    stopLoss: number;
+    alertThreshold: number;
+  };
+  trading: {
+    defaultPositionSize: number;
+    autoTrading: boolean;
+    riskManagement: boolean;
+  };
+  profile: {
+    name: string;
+    email: string;
+    phone: string;
+    timezone: string;
+  };
 }

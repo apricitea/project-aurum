@@ -3,7 +3,7 @@ import { ArrowUp, ArrowDown, Minus, TrendingUp, Star } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { useDashboardStore } from '@/store/dashboard';
-import { formatIDR, formatPercent, getPnLColorClass, formatStockCode } from '@/lib/utils';
+import { formatPercent } from '@/lib/utils';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 const TradingSignals: React.FC = () => {

@@ -4,7 +4,6 @@ import {
   Filter,
   Search,
   Download,
-  Calendar,
   ArrowUpDown,
   TrendingUp,
   TrendingDown,
@@ -22,7 +21,7 @@ import {
   getSignalColorClass,
   formatStockCode,
 } from '@/lib/utils';
-import type { TradingSignal, SignalType } from '@/types/api';
+import type { SignalType } from '@/types/api';
 
 interface FilterState {
   search: string;

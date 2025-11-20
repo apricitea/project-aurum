@@ -118,7 +118,7 @@ const Backtesting: React.FC = () => {
     );
   }
 
-  const { overview, confidence_analysis, sector_analysis, best_trades, worst_trades, monthly_performance } = backtestData;
+  const { overview, confidence_analysis, sector_analysis, best_trades, worst_trades } = backtestData;
 
   const formatCurrency = (amount: number) => {
     if (Math.abs(amount) >= 1_000_000_000) {

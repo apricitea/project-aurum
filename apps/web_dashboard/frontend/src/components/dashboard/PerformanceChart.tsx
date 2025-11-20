@@ -145,7 +145,7 @@ const PerformanceChart: React.FC = () => {
         ticks: {
           color: 'rgb(107, 114, 128)',
           callback: function(value: any) {
-            return formatIDR(value, true); // Abbreviated format
+            return formatIDR(value); // Standard format
           },
         },
       },

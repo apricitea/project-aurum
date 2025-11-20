@@ -45,8 +45,8 @@ interface Settings {
 
 const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'profile' | 'notifications' | 'risk' | 'trading'>('profile');
-  const [settings, setSettings] = useState<Settings>(
-    storage.get('userSettings', {
+  const [settings, setSettings] = useState<Settings>(() =>
+    storage.get('userSettings') || {
       theme: 'system' as const,
       notifications: {
         alerts: true,
@@ -71,7 +71,7 @@ const Settings: React.FC = () => {
         email: 'trader@example.com',
         timezone: 'Asia/Jakarta',
       },
-    })
+    }
   );
   const [hasChanges, setHasChanges] = useState(false);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');

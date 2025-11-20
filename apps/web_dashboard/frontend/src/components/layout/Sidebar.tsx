@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   Settings,
   LogOut,
-  Menu,
   X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';

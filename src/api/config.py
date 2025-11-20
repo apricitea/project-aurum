@@ -207,6 +207,10 @@ class Settings(BaseSettings):
         """Get database connection URL"""
         if self.DB_URL:
             return self.DB_URL
+        # For development, prefer SQLite if PostgreSQL credentials are defaults
+        if (self.ENVIRONMENT.lower() == "development" and
+            self.DB_PASSWORD == "password" and self.DB_USER == "postgres"):
+            return "sqlite:///./data/trading_system.db"
         return (
             f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}"
             f"@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"

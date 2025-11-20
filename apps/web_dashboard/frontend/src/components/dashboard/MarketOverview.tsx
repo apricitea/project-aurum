@@ -112,7 +112,7 @@ const MarketOverview: React.FC = () => {
               Major Indices
             </h4>
             <div className="grid grid-cols-1 gap-3">
-              {marketIndices.map((index, i) => {
+              {marketIndices.map((index) => {
                 const isPositive = index.change >= 0;
                 const Icon = isPositive ? TrendingUp : TrendingDown;
 
