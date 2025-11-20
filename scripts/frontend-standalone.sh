@@ -18,6 +18,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 FRONTEND_DIR="$PROJECT_ROOT/apps/web_dashboard/frontend"
 
+# Source port utility
+source "$SCRIPT_DIR/port-utility.sh"
+
 echo -e "${BLUE}🚀 Project Aurum Frontend - Standalone Mode${NC}"
 echo "========================================"
 echo -e "${CYAN}Frontend with Mock Data (No Backend Required!)${NC}"
@@ -141,9 +144,24 @@ start_frontend() {
     echo -e "${YELLOW}⏹️  Press CTRL+C to stop${NC}"
     echo ""
 
+    # Find available port for frontend
+    DEFAULT_FRONTEND_PORT=3000
+    FRONTEND_PORT=$(find_available_port $DEFAULT_FRONTEND_PORT)
+
+    if [[ -z "$FRONTEND_PORT" ]]; then
+        echo -e "${RED}❌ Failed to find available port for frontend${NC}"
+        exit 1
+    fi
+
+    echo -e "${GREEN}✅ Frontend will start on: http://localhost:$FRONTEND_PORT${NC}"
+
     # Start the development server
     if command -v npm &> /dev/null; then
-        npm run dev
+        if [[ "$FRONTEND_PORT" != "$DEFAULT_FRONTEND_PORT" ]]; then
+            PORT="$FRONTEND_PORT" npm run dev
+        else
+            npm run dev
+        fi
     else
         echo -e "${RED}❌ npm not found. Please install Node.js and npm.${NC}"
         exit 1

@@ -2,6 +2,7 @@
 
 # Frontend Development Script
 # This script ensures commands are run from the correct directory
+# Supports automatic port detection
 
 set -e
 
@@ -16,6 +17,9 @@ NC='\033[0m' # No Color
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 FRONTEND_DIR="$PROJECT_ROOT/apps/web_dashboard/frontend"
+
+# Source port utility
+source "$SCRIPT_DIR/port-utility.sh"
 
 echo -e "${BLUE}🚀 Project Aurum Frontend Development Script${NC}"
 echo "========================================="
@@ -145,12 +149,42 @@ main() {
     case "$command" in
         "dev")
             echo -e "${GREEN}🌟 Starting development server...${NC}"
-            echo -e "Frontend will be available at: ${BLUE}http://localhost:3000${NC}"
-            echo -e "Backend API: ${BLUE}http://localhost:8000${NC}"
+
+            # Find available port for frontend
+            DEFAULT_FRONTEND_PORT=3000
+            FRONTEND_PORT=$(find_available_port $DEFAULT_FRONTEND_PORT)
+
+            if [[ -z "$FRONTEND_PORT" ]]; then
+                echo -e "${RED}❌ Failed to find available port for frontend${NC}"
+                exit 1
+            fi
+
+            echo -e "${GREEN}✅ Frontend will be available at: ${BLUE}http://localhost:$FRONTEND_PORT${NC}"
+
+            # Try to detect backend port
+            BACKEND_PORT=8000
+            if is_port_available "$BACKEND_PORT"; then
+                echo -e "${YELLOW}⚠️  Backend API not detected on default port 8000${NC}"
+                echo -e "${YELLOW}💡 Frontend will run in standalone mode${NC}"
+
+                # Configure standalone mode
+                echo -e "${BLUE}📝 Configuring standalone mode...${NC}"
+                cp .env.standalone .env 2>/dev/null || echo "Standalone env already exists"
+                echo -e "${GREEN}✅ Standalone mode configured${NC}"
+            else
+                echo -e "${GREEN}✅ Backend API detected at: ${BLUE}http://localhost:$BACKEND_PORT${NC}"
+            fi
+
             echo ""
             echo "Press Ctrl+C to stop the server"
             echo ""
-            npm run dev
+
+            # Start frontend with custom port
+            if [[ "$FRONTEND_PORT" != "$DEFAULT_FRONTEND_PORT" ]]; then
+                PORT="$FRONTEND_PORT" npm run dev
+            else
+                npm run dev
+            fi
             ;;
         "build")
             echo -e "${GREEN}🏗️  Building for production...${NC}"

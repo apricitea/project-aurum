@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Backend startup script for Project Aurum
-# This script starts the FastAPI backend server
+# This script starts the FastAPI backend server with automatic port detection
 
 set -e
 
@@ -15,6 +15,9 @@ NC='\033[0m' # No Color
 # Project root detection
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
+
+# Source port utility
+source "$SCRIPT_DIR/port-utility.sh"
 
 echo -e "${BLUE}🚀 Starting Project Aurum Backend${NC}"
 echo "================================"
@@ -44,11 +47,30 @@ else
 fi
 
 echo ""
+
+# Find available port for backend
+DEFAULT_BACKEND_PORT=8000
+BACKEND_PORT=$(find_available_port $DEFAULT_BACKEND_PORT)
+
+if [[ -z "$BACKEND_PORT" ]]; then
+    echo -e "${RED}❌ Failed to find available port for backend${NC}"
+    exit 1
+fi
+
+# Update API_PORT in environment if different from default
+if [[ "$BACKEND_PORT" != "$DEFAULT_BACKEND_PORT" ]]; then
+    update_port_in_config ".env" "API_PORT" "$BACKEND_PORT" "Backend"
+    update_port_in_config ".env" "API_HOST" "0.0.0.0" "Backend"
+fi
+
+echo ""
 echo -e "${BLUE}🔥 Starting FastAPI backend server...${NC}"
-echo -e "${GREEN}✅ Backend will start on http://localhost:8000${NC}"
-echo -e "${GREEN}📖 API docs will be available at http://localhost:8000/docs${NC}"
-echo -e "${YELLOW}⏹️  Press CTRL+C to stop${NC}"
+
+# Start the backend with dynamic port
+echo -e "${GREEN}✅ Backend starting on http://localhost:$BACKEND_PORT${NC}"
+echo -e "${GREEN}📖 API docs will be available at http://localhost:$BACKEND_PORT/docs${NC}"
+echo -e "${GREEN}⏹️  Press CTRL+C to stop${NC}"
 echo ""
 
-# Start the backend
-uv run python main.py --start
+# Start the backend with custom port
+API_PORT="$BACKEND_PORT" uv run python main.py --start
