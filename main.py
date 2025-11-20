@@ -17,6 +17,23 @@ from pathlib import Path
 # Add src to path for imports
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
 
+# Load environment variables before importing settings
+# This ensures API_PORT is available when settings module is loaded
+def load_env_vars():
+    """Load environment variables from .env file"""
+    if os.path.exists('.env'):
+        from dotenv import load_dotenv
+        load_dotenv()
+
+    # Set default values if not in environment
+    if not os.getenv('API_PORT'):
+        os.environ['API_PORT'] = '8000'
+    if not os.getenv('API_HOST'):
+        os.environ['API_HOST'] = '0.0.0.0'
+
+# Load environment variables
+load_env_vars()
+
 def main():
     """Main application entry point"""
     print("🚀 Project Aurum - Indonesian Quantitative Trading System")
@@ -43,18 +60,23 @@ def start_backend():
     print("🔥 Starting FastAPI backend server...")
 
     try:
+        # Get port from environment variable or use default
+        import os
+        api_port = int(os.getenv("API_PORT", "8000"))
+        api_host = os.getenv("API_HOST", "0.0.0.0")
+
         # Use uvicorn to start the FastAPI app
         import uvicorn
         from src.api.main import app
 
-        print("✅ Backend starting on http://localhost:8000")
-        print("📖 API docs available at http://localhost:8000/docs")
+        print(f"✅ Backend starting on http://localhost:{api_port}")
+        print(f"📖 API docs will be available at http://localhost:{api_port}/docs")
         print("⏹️  Press CTRL+C to stop")
 
         uvicorn.run(
             "src.api.main:app",
-            host="0.0.0.0",
-            port=8000,
+            host=api_host,
+            port=api_port,
             reload=True,
             log_level="info"
         )

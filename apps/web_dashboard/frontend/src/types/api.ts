@@ -23,6 +23,9 @@ export enum AlertStatus {
   RESOLVED = 'resolved',
 }
 
+// Type alias for string literal to match mock API usage
+export type AlertStatusType = 'active' | 'acknowledged' | 'dismissed' | 'expired' | 'resolved';
+
 export enum TaskStatus {
   PENDING = 'pending',
   STARTED = 'started',
@@ -120,7 +123,7 @@ export interface Alert {
   alert_type: string;
   message: string;
   priority: AlertPriority;
-  status: AlertStatus;
+  status: AlertStatusType;
   stock_code?: string;
   metadata?: Record<string, any>;
   created_at: string;

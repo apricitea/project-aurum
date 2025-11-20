@@ -72,5 +72,19 @@ echo -e "${GREEN}📖 API docs will be available at http://localhost:$BACKEND_PO
 echo -e "${GREEN}⏹️  Press CTRL+C to stop${NC}"
 echo ""
 
+# Make sure environment file exists and has the port set
+touch .env
+if ! grep -q "^API_PORT=" .env; then
+    echo "API_PORT=$BACKEND_PORT" >> .env
+else
+    sed -i "s/^API_PORT=.*/API_PORT=$BACKEND_PORT/" .env
+fi
+
+if ! grep -q "^API_HOST=" .env; then
+    echo "API_HOST=0.0.0.0" >> .env
+else
+    sed -i "s/^API_HOST=.*/API_HOST=0.0.0.0/" .env
+fi
+
 # Start the backend with custom port
-API_PORT="$BACKEND_PORT" uv run python main.py --start
+uv run python main.py --start

@@ -72,14 +72,25 @@ check_dependencies() {
 
 # Function to check if backend is running
 check_backend() {
-    if curl -s http://localhost:8000/health &> /dev/null; then
-        echo -e "${GREEN}✓ Backend is running on http://localhost:8000${NC}"
+    # Check for backend on default port first, then try to detect from .env
+    local backend_port=8000
+
+    # Try to get port from .env file if it exists
+    if [[ -f "$PROJECT_ROOT/.env" ]]; then
+        local env_port=$(grep "^API_PORT=" "$PROJECT_ROOT/.env" 2>/dev/null | cut -d'=' -f2)
+        if [[ -n "$env_port" && "$env_port" =~ ^[0-9]+$ ]]; then
+            backend_port=$env_port
+        fi
+    fi
+
+    if curl -s "http://localhost:$backend_port/health" &> /dev/null; then
+        echo -e "${GREEN}✓ Backend is running on http://localhost:$backend_port${NC}"
+        export BACKEND_PORT=$backend_port
     else
-        echo -e "${YELLOW}⚠️  Backend may not be running on http://localhost:8000${NC}"
+        echo -e "${YELLOW}⚠️  Backend may not be running on http://localhost:$backend_port${NC}"
         echo "Make sure to start the backend before running the frontend:"
         echo "  cd $PROJECT_ROOT"
-        echo "  source .venv/bin/activate"
-        echo "  python main.py"
+        echo "  ./scripts/start-backend.sh"
         echo ""
     fi
 }
@@ -161,10 +172,17 @@ main() {
 
             echo -e "${GREEN}✅ Frontend will be available at: ${BLUE}http://localhost:$FRONTEND_PORT${NC}"
 
-            # Try to detect backend port
+            # Try to detect backend port from .env file
             BACKEND_PORT=8000
+            if [[ -f "$PROJECT_ROOT/.env" ]]; then
+                local env_port=$(grep "^API_PORT=" "$PROJECT_ROOT/.env" 2>/dev/null | cut -d'=' -f2)
+                if [[ -n "$env_port" && "$env_port" =~ ^[0-9]+$ ]]; then
+                    BACKEND_PORT=$env_port
+                fi
+            fi
+
             if is_port_available "$BACKEND_PORT"; then
-                echo -e "${YELLOW}⚠️  Backend API not detected on default port 8000${NC}"
+                echo -e "${YELLOW}⚠️  Backend API not detected on port $BACKEND_PORT${NC}"
                 echo -e "${YELLOW}💡 Frontend will run in standalone mode${NC}"
 
                 # Configure standalone mode

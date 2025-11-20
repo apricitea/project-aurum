@@ -33,7 +33,7 @@ export const MockModeIndicator: React.FC = () => {
       </div>
 
       {/* Push content down to avoid overlap */}
-      <style jsx>{`
+      <style>{`
         body {
           padding-top: 52px;
         }
