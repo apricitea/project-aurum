@@ -64,7 +64,7 @@ const Risk: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between h-20">
                   <div>
                     <p className="text-sm font-medium text-secondary-600">Overall Risk</p>
                     <Badge className={`mt-2 ${getRiskLevelColor(riskOverview?.overall_risk_level || 'Medium')}`}>
@@ -80,7 +80,7 @@ const Risk: React.FC = () => {
 
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between h-20">
                   <div>
                     <p className="text-sm font-medium text-secondary-600">Value at Risk</p>
                     <p className="text-2xl font-bold text-danger-600">
@@ -97,7 +97,7 @@ const Risk: React.FC = () => {
 
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between h-20">
                   <div>
                     <p className="text-sm font-medium text-secondary-600">Portfolio Beta</p>
                     <p className="text-2xl font-bold text-secondary-900">
@@ -105,7 +105,7 @@ const Risk: React.FC = () => {
                     </p>
                     <p className="text-xs text-secondary-500 mt-1">vs IDX Composite</p>
                   </div>
-                  <div className="h-12 w-12 bg-info-100 rounded-lg flex items-center justify-center">
+                  <div className="h-12 w-12 bg-secondary-100 rounded-lg flex items-center justify-center">
                     <BarChart3 className="h-6 w-6 text-info-600" />
                   </div>
                 </div>
@@ -114,7 +114,7 @@ const Risk: React.FC = () => {
 
             <Card>
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between h-20">
                   <div>
                     <p className="text-sm font-medium text-secondary-600">Diversification</p>
                     <p className="text-2xl font-bold text-success-600">

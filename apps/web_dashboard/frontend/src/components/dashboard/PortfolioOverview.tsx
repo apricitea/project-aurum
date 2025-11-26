@@ -70,7 +70,7 @@ const PortfolioOverview: React.FC = () => {
           return (
             <Card key={index}>
               <CardContent className="p-6">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between h-20">
                   <div className="flex-1">
                     <p className="text-sm font-medium text-secondary-600">
                       {metric.title}

@@ -42,7 +42,7 @@ const Analytics: React.FC = () => {
     fetchPerformance,
     portfolio,
   } = useDashboardStore();
-  
+
   const [timeFrame, setTimeFrame] = useState(30);
   const [activeTab, setActiveTab] = useState<'performance' | 'signals' | 'risk'>('performance');
 
@@ -84,7 +84,7 @@ const Analytics: React.FC = () => {
     // Sample monthly performance data
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
     const returns = [2.5, -1.2, 4.1, 1.8, -0.5, 3.2];
-    
+
     return {
       labels: months,
       datasets: [
@@ -155,14 +155,14 @@ const Analytics: React.FC = () => {
           <select
             value={timeFrame}
             onChange={(e) => setTimeFrame(parseInt(e.target.value))}
-            className="px-3 py-2 border border-secondary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+            className="px-3 py-2 bg-transparent border border-secondary-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 h-8 text-xs"
           >
             <option value={7}>Last 7 days</option>
             <option value={30}>Last 30 days</option>
             <option value={90}>Last 90 days</option>
             <option value={365}>Last year</option>
           </select>
-          
+
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export
@@ -417,8 +417,8 @@ const Analytics: React.FC = () => {
                     {Object.entries(portfolio.sector_breakdown).map(([sector, percentage]) => (
                       <div key={sector} className="flex items-center justify-between">
                         <span className="text-sm text-secondary-700">{sector}</span>
-                        <div className="flex items-center gap-2">
-                          <div className="w-24 bg-secondary-200 rounded-full h-2">
+                        <div className="flex items-center justify-between w-40 xl:w-64">
+                          <div className="w-20 xl:w-36 bg-secondary-200 rounded-full h-2">
                             <div
                               className={`h-2 rounded-full ${
                                 percentage > 30 ? 'bg-danger-500' :
@@ -428,7 +428,7 @@ const Analytics: React.FC = () => {
                               style={{ width: `${Math.min(percentage, 100)}%` }}
                             />
                           </div>
-                          <span className="text-sm font-medium text-secondary-900 w-12 text-right">
+                          <span className="text-sm font-medium text-secondary-900 text-right">
                             {formatPercent(percentage / 100)}
                           </span>
                         </div>

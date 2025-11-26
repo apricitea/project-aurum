@@ -44,7 +44,7 @@ const Portfolio: React.FC = () => {
     fetchPortfolio();
   }, [fetchPortfolio]);
 
-  
+
   const handleAddPosition = async () => {
     if (!newPosition.stock_code || newPosition.quantity <= 0 || newPosition.average_price <= 0) {
       return;
@@ -151,7 +151,7 @@ const Portfolio: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between h-20">
               <div>
                 <p className="text-sm font-medium text-secondary-600">Total Value</p>
                 <p className="text-2xl font-bold text-secondary-900">
@@ -167,7 +167,7 @@ const Portfolio: React.FC = () => {
 
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between h-20">
               <div>
                 <p className="text-sm font-medium text-secondary-600">Unrealized P&L</p>
                 <p className={`text-2xl font-bold ${getPnLColorClass(totalUnrealizedPnL)}`}>
@@ -190,7 +190,7 @@ const Portfolio: React.FC = () => {
 
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between h-20">
               <div>
                 <p className="text-sm font-medium text-secondary-600">Positions</p>
                 <p className="text-2xl font-bold text-secondary-900">
@@ -206,7 +206,7 @@ const Portfolio: React.FC = () => {
 
         <Card>
           <CardContent className="p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between h-20">
               <div>
                 <p className="text-sm font-medium text-secondary-600">Cash Available</p>
                 <p className="text-2xl font-bold text-secondary-900">

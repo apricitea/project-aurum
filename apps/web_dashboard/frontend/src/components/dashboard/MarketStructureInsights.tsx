@@ -126,7 +126,7 @@ const MarketStructureInsights: React.FC = () => {
       </Card>
 
       <Card>
-        <CardHeader className="flex items-center justify-between">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
           <CardTitle className="text-lg font-semibold">Auction Market Profile</CardTitle>
           <Button variant="ghost" size="sm" onClick={loadAmtProfile} disabled={loadingProfile}>
             {loadingProfile && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}

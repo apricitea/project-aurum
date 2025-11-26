@@ -65,7 +65,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onToggle }) => {
       name: 'Settings',
       href: '/settings',
       icon: Settings,
-      description: 'Konfigurasi sistem',
+      description: 'System configuration',
     },
   ];
 

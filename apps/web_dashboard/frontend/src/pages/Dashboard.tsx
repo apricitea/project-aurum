@@ -86,7 +86,7 @@ const Dashboard: React.FC = () => {
               </span>
             </div>
           )}
-          
+
           <Button
             variant={autoRefresh ? 'primary' : 'outline'}
             size="sm"
@@ -167,7 +167,8 @@ const Dashboard: React.FC = () => {
 
               <div className="group relative p-3 rounded-xl bg-gradient-to-br from-success-50 to-success-100 border border-success-200 hover:shadow-md transition-all duration-200">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-medium text-success-700 uppercase tracking-wide">Active Positions</span>
+                  {/* Sebelumnya Active Positions karna kelebihan sementara dijadikan positions dulu */}
+                  <span className="text-xs font-medium text-success-700 uppercase tracking-wide">Positions</span>
                   <div className="flex items-center gap-1">
                     <Activity className="h-3 w-3 text-success-500" />
                     <span className="text-xs text-success-600">
