@@ -29,6 +29,9 @@ from src.api.signal_service import SignalService
 from src.api.risk_monitor import RiskMonitor
 from src.api.schemas import *
 from src.api.config import settings
+from src.api.security_middleware import (
+    SecurityHeaders, initialize_security, get_security_status,
+)
 
 # Celery app — defined at module level so it is accessible as src.api.main:celery_app
 # for Celery worker/beat containers in docker-compose.prod.yml
@@ -81,6 +84,9 @@ async def lifespan(app: FastAPI):
     await alert_engine.initialize()
     await risk_monitor.start_monitoring()
 
+    # Initialize security middleware (Redis-backed rate limiter)
+    await initialize_security()
+
     logger.info("Alert system initialized successfully")
 
     yield
@@ -114,6 +120,16 @@ app.add_middleware(
 )
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+
+# Security headers middleware — injects OWASP-recommended headers on every response
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    for header, value in SecurityHeaders.get_security_headers().items():
+        response.headers[header] = value
+    return response
+
 
 # Security
 security = HTTPBearer()
@@ -164,6 +180,12 @@ async def detailed_health_check():
         health_status["status"] = "degraded"
 
     return health_status
+
+
+@app.get("/security/status", tags=["Health"])
+async def security_status():
+    """Security components status (rate limiter, event monitor)"""
+    return await get_security_status()
 
 
 # Authentication Endpoints

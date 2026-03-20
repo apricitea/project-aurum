@@ -14,7 +14,8 @@ import asyncpg
 from pydantic import BaseModel
 
 from .config import settings
-from .database import DatabaseManager
+from .database import DatabaseManager, get_db_manager
+from .password_security import validate_password as check_password_strength
 
 logger = logging.getLogger(__name__)
 
@@ -107,8 +108,8 @@ class AuthManager:
         }
 
     def hash_password(self, password: str) -> str:
-        """Hash password using bcrypt"""
-        salt = bcrypt.gensalt()
+        """Hash password using bcrypt with rounds=12"""
+        salt = bcrypt.gensalt(rounds=12)
         return bcrypt.hashpw(password.encode('utf-8'), salt).decode('utf-8')
 
     def verify_password(self, password: str, hashed_password: str) -> bool:
@@ -150,9 +151,7 @@ class AuthManager:
     async def authenticate(self, username: str, password: str) -> Dict[str, Any]:
         """Authenticate user and return tokens"""
         try:
-            # Get user from database
-            db_manager = DatabaseManager()
-            await db_manager.initialize()
+            db_manager = get_db_manager()
 
             async with db_manager.get_connection() as conn:
                 user_row = await conn.fetchrow(
@@ -200,8 +199,6 @@ class AuthManager:
                     user_row['id']
                 )
 
-            await db_manager.close()
-
             return {
                 "access_token": access_token,
                 "refresh_token": refresh_token,
@@ -245,8 +242,7 @@ class AuthManager:
                     detail="Invalid token payload"
                 )
 
-            db_manager = DatabaseManager()
-            await db_manager.initialize()
+            db_manager = get_db_manager()
 
             async with db_manager.get_connection() as conn:
                 user_row = await conn.fetchrow(
@@ -276,8 +272,6 @@ class AuthManager:
 
             # Generate new access token
             new_access_token = self.create_access_token(token_data)
-
-            await db_manager.close()
 
             return {
                 "access_token": new_access_token,
@@ -328,6 +322,14 @@ class AuthManager:
                          role: str = "trader", permissions: Dict[str, bool] = None) -> Dict[str, Any]:
         """Create new user"""
         try:
+            # Enforce password policy before doing anything else
+            strength = check_password_strength(password, username=username)
+            if not strength["is_valid"]:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Password does not meet requirements: {'; '.join(strength['errors'])}"
+                )
+
             # Hash password
             password_hash = self.hash_password(password)
 
@@ -336,9 +338,7 @@ class AuthManager:
             user_permissions = permissions or {}
             combined_permissions = {**role_permissions, **user_permissions}
 
-            # Save to database
-            db_manager = DatabaseManager()
-            await db_manager.initialize()
+            db_manager = get_db_manager()
 
             async with db_manager.get_transaction() as conn:
                 # Check if username or email already exists
@@ -359,8 +359,6 @@ class AuthManager:
                     VALUES ($1, $2, $3, $4, $5)
                     RETURNING id, username, email, role, created_at
                 """, username, email, password_hash, role, combined_permissions)
-
-            await db_manager.close()
 
             return {
                 "id": str(user_row['id']),
@@ -384,18 +382,12 @@ class AuthManager:
                                     permissions: Dict[str, bool]) -> bool:
         """Update user permissions"""
         try:
-            db_manager = DatabaseManager()
-            await db_manager.initialize()
-
-            async with db_manager.get_connection() as conn:
+            async with get_db_manager().get_connection() as conn:
                 await conn.execute(
                     "UPDATE users SET permissions = $2 WHERE id = $1",
                     user_id, permissions
                 )
-
-            await db_manager.close()
             return True
-
         except Exception as e:
             logger.error(f"Permission update error: {str(e)}")
             return False
@@ -403,18 +395,12 @@ class AuthManager:
     async def deactivate_user(self, user_id: str) -> bool:
         """Deactivate user account"""
         try:
-            db_manager = DatabaseManager()
-            await db_manager.initialize()
-
-            async with db_manager.get_connection() as conn:
+            async with get_db_manager().get_connection() as conn:
                 await conn.execute(
                     "UPDATE users SET is_active = false WHERE id = $1",
                     user_id
                 )
-
-            await db_manager.close()
             return True
-
         except Exception as e:
             logger.error(f"User deactivation error: {str(e)}")
             return False

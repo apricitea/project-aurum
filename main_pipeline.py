@@ -1,34 +1,37 @@
 """
-Minimal stubs for legacy imports.
+main_pipeline.py — Entry point for the Project Aurum data pipeline.
 
-The original notebooks referenced `main_pipeline` for orchestration, but
-that module isn't part of the current codebase.  We provide lightweight
-stand-ins so the API can start up without ImportErrors.
+Exposes the real UnifiedDataPipeline for both direct execution and notebook
+imports. The actual implementation lives in src/data_pipeline/unified_pipeline.py.
+
+Usage:
+    # Run end-of-day pipeline (prices, intraday, fundamentals, news, feature store):
+    python main_pipeline.py
+
+    # Or import in notebooks:
+    from main_pipeline import UnifiedDataPipeline, PipelineRunConfig
+    pipeline = UnifiedDataPipeline()
+    pipeline.run_end_of_day()
 """
 
-from __future__ import annotations
+from src.data_pipeline.unified_pipeline import UnifiedDataPipeline, PipelineRunConfig
 
-from dataclasses import dataclass
-from typing import Any, Dict
+# Legacy compat aliases for notebooks that imported DataCollector / TradingPipeline
+DataCollector = UnifiedDataPipeline
+TradingPipeline = UnifiedDataPipeline
 
-import pandas as pd
-
-
-class DataCollector:
-    """Stub collector that returns empty data frames."""
-
-    def collect_daily_data(self) -> Dict[str, Any]:
-        return {
-            "price_data": pd.DataFrame(),
-            "fundamental_data": pd.DataFrame(),
-        }
+__all__ = ["UnifiedDataPipeline", "PipelineRunConfig", "DataCollector", "TradingPipeline"]
 
 
-@dataclass
-class TradingPipeline:
-    """Placeholder trading pipeline."""
+if __name__ == "__main__":
+    import logging
+    import sys
 
-    config: Dict[str, Any] | None = None
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+        stream=sys.stdout,
+    )
 
-    def run(self) -> None:
-        return None
+    pipeline = UnifiedDataPipeline()
+    pipeline.run_end_of_day()

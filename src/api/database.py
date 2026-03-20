@@ -12,7 +12,7 @@ import logging
 import json
 from contextlib import asynccontextmanager
 import os
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, Float, Boolean, JSON, Text, ForeignKey
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, DateTime, Float, Boolean, JSON, Text, ForeignKey, BigInteger, ARRAY
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB as PostgreSQL_JSONB
@@ -84,6 +84,10 @@ class User(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     last_login = Column(DateTime)
+    # Telegram integration (added in migration 001_telegram_bot_schema)
+    telegram_chat_id = Column(BigInteger, unique=True, nullable=True)
+    telegram_username = Column(String(100), nullable=True)
+    telegram_linked_at = Column(DateTime, nullable=True)
 
     def has_permission(self, permission: str) -> bool:
         """Check if user has specific permission"""
@@ -208,6 +212,69 @@ class SignalGenerationTask(Base):
     error_message = Column(Text)
     meta_data = Column(JSONB, default={})
     signals_generated = Column(Integer, default=0)
+
+
+class TelegramPreferences(Base):
+    """Per-user Telegram bot preferences (alert types, watchlist, language)."""
+    __tablename__ = "telegram_preferences"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(GUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, unique=True)
+    alert_types = Column(ARRAY(Text), default=["high_confidence", "risk_breach", "large_position"])
+    signal_filter = Column(String(20), default="all")
+    notification_hours = Column(ARRAY(Integer), default=[9, 10, 11, 14, 15])
+    watchlist = Column(ARRAY(Text), default=[])
+    language = Column(String(10), default="id")
+    timezone = Column(String(50), default="Asia/Jakarta")
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class BotCommandLog(Base):
+    """Audit log for all Telegram bot commands."""
+    __tablename__ = "bot_command_log"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(GUID, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    telegram_chat_id = Column(BigInteger, nullable=False)
+    command = Column(String(100), nullable=False)
+    parameters = Column(JSONB, nullable=True)
+    response_status = Column(String(20), nullable=False)
+    response_time_ms = Column(Integer, nullable=True)
+    error_message = Column(Text, nullable=True)
+    executed_at = Column(DateTime, default=datetime.utcnow)
+
+
+class PendingTransaction(Base):
+    """Short-lived buy/sell confirmation records (5-minute TTL)."""
+    __tablename__ = "pending_transactions"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(GUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    transaction_type = Column(String(20), nullable=False)
+    stock_code = Column(String(10), nullable=False)
+    quantity = Column(Integer, nullable=False)
+    price = Column(Float, nullable=False)
+    confirmation_code = Column(String(20), unique=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)
+    confirmed_at = Column(DateTime, nullable=True)
+    status = Column(String(20), default="pending")
+    meta_data = Column(JSONB, nullable=True)
+
+
+class TelegramAuthToken(Base):
+    """One-time tokens for linking Telegram accounts to user accounts."""
+    __tablename__ = "telegram_auth_tokens"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    token = Column(String(100), unique=True, nullable=False)
+    telegram_chat_id = Column(BigInteger, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime, nullable=False)
+    used_at = Column(DateTime, nullable=True)
+    user_id = Column(GUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=True)
+    status = Column(String(20), default="pending")
 
 
 class DatabaseManager:
@@ -652,6 +719,17 @@ def set_db_manager(instance: "DatabaseManager") -> None:
     """Called once by main.py lifespan to register the global db_manager."""
     global _db_manager_instance
     _db_manager_instance = instance
+
+
+def get_db_manager() -> "DatabaseManager":
+    """Return the app-scoped DatabaseManager singleton.
+
+    Use this in non-FastAPI contexts (e.g. AuthManager methods) to avoid
+    creating a new connection pool on every call.
+    """
+    if _db_manager_instance is None:
+        raise RuntimeError("DatabaseManager not initialized — app not started yet")
+    return _db_manager_instance
 
 
 async def get_db():
