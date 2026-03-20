@@ -59,7 +59,7 @@ services:
 
   # Main API Service - Production
   api:
-    image: ghcr.io/your-username/project-aurum:latest
+    image: ghcr.io/apricitea/project-aurum:${IMAGE_TAG:-latest}
     container_name: aurum_prod_api
     environment:
       - ENVIRONMENT=production
@@ -128,7 +128,7 @@ services:
 
   # Celery Worker - Production
   celery_worker:
-    image: ghcr.io/your-username/project-aurum:latest
+    image: ghcr.io/apricitea/project-aurum:${IMAGE_TAG:-latest}
     container_name: aurum_prod_celery_worker
     command: celery -A src.api.main:celery_app worker --loglevel=info --concurrency=2 --max-tasks-per-child=1000
     environment:
@@ -165,7 +165,7 @@ services:
 
   # Celery Beat Scheduler - Production
   celery_beat:
-    image: ghcr.io/your-username/project-aurum:latest
+    image: ghcr.io/apricitea/project-aurum:${IMAGE_TAG:-latest}
     container_name: aurum_prod_celery_beat
     command: celery -A src.api.main:celery_app beat --loglevel=info --pidfile=/tmp/celerybeat.pid
     environment:
@@ -311,7 +311,7 @@ services:
 
   # Health Check Service
   healthcheck:
-    image: ghcr.io/your-username/project-aurum:latest
+    image: ghcr.io/apricitea/project-aurum:${IMAGE_TAG:-latest}
     container_name: aurum_prod_healthcheck
     command: python /app/scripts/health_monitor.py
     environment:

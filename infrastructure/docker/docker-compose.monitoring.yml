@@ -38,7 +38,7 @@ services:
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
       - ./monitoring/grafana_dashboards.json:/var/lib/grafana/dashboards/aurum_dashboard.json
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=aurum_admin_2024
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD must be set}
       - GF_USERS_ALLOW_SIGN_UP=false
       - GF_SECURITY_ADMIN_USER=admin
       - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
@@ -100,7 +100,7 @@ services:
     ports:
       - "9187:9187"
     environment:
-      - DATA_SOURCE_NAME=postgresql://aurum_user:aurum_password@postgres:5432/aurum_db?sslmode=disable
+      - DATA_SOURCE_NAME=postgresql://${PROD_DB_USER:-aurum_user}:${PROD_DB_PASSWORD:?PROD_DB_PASSWORD must be set}@postgres:5432/${PROD_DB_NAME:-aurum_db}?sslmode=disable
     networks:
       - aurum-monitoring
       - aurum-backend
@@ -222,7 +222,7 @@ services:
     ports:
       - "8001:8001"
     environment:
-      - POSTGRES_URL=postgresql://aurum_user:aurum_password@postgres:5432/aurum_db
+      - POSTGRES_URL=postgresql://${PROD_DB_USER:-aurum_user}:${PROD_DB_PASSWORD:?PROD_DB_PASSWORD must be set}@postgres:5432/${PROD_DB_NAME:-aurum_db}
       - REDIS_URL=redis://redis:6379
       - LOG_LEVEL=INFO
     volumes:

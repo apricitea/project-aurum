@@ -10,7 +10,6 @@ RUN apt-get update && apt-get install -y \
 
 # Copy requirements
 COPY requirements.txt .
-COPY requirements-dev.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -19,9 +18,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY src/ ./src/
 COPY main.py .
 
-# Development stage
+# Development stage — installs dev extras (pytest, httpx, etc.) on top of base
 FROM base as development
-RUN pip install --no-cache-dir -r requirements-dev.txt
+RUN pip install --no-cache-dir pytest pytest-asyncio pytest-cov httpx faker
 CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 # Production stage

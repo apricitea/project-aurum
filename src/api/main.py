@@ -19,13 +19,31 @@ import logging
 from contextlib import asynccontextmanager
 import os
 
+import pytz
+from celery import Celery
+
 from src.api.auth import AuthManager, get_current_user, User
-from src.api.database import DatabaseManager, get_db
+from src.api.database import DatabaseManager, get_db, set_db_manager
 from src.api.alert_engine import AlertEngine
 from src.api.signal_service import SignalService
 from src.api.risk_monitor import RiskMonitor
 from src.api.schemas import *
 from src.api.config import settings
+
+# Celery app — defined at module level so it is accessible as src.api.main:celery_app
+# for Celery worker/beat containers in docker-compose.prod.yml
+celery_app = Celery(
+    "project_aurum",
+    broker=settings.get_redis_url(),
+    backend=settings.get_redis_url(),
+)
+celery_app.conf.update(
+    task_serializer="json",
+    result_serializer="json",
+    accept_content=["json"],
+    timezone="Asia/Jakarta",
+    enable_utc=True,
+)
 
 # Configure logging
 logging.basicConfig(
@@ -52,6 +70,7 @@ async def lifespan(app: FastAPI):
     # Initialize database
     db_manager = DatabaseManager()
     await db_manager.initialize()
+    set_db_manager(db_manager)  # register singleton for get_db() dependency
 
     # Initialize services
     alert_engine = AlertEngine(db_manager)
@@ -406,10 +425,11 @@ async def get_market_status():
     """Get current market status"""
     try:
         # Check if market is open (IDX hours: 09:00-15:49 WIB)
-        jakarta_time = datetime.now()  # Assume server is in WIB
+        wib = pytz.timezone("Asia/Jakarta")
+        jakarta_time = datetime.now(wib)
         market_open = jakarta_time.time() >= datetime.strptime("09:00", "%H:%M").time()
         market_close = jakarta_time.time() <= datetime.strptime("15:49", "%H:%M").time()
-        is_market_open = market_open and market_close
+        is_market_open = market_open and market_close and jakarta_time.weekday() < 5
 
         return MarketStatusResponse(
             is_open=is_market_open,

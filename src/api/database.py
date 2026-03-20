@@ -644,11 +644,23 @@ class DatabaseManager:
             )
 
 
-# Database dependency for FastAPI
+# Module-level singleton — set by main.py lifespan after initialization
+_db_manager_instance: "DatabaseManager | None" = None
+
+
+def set_db_manager(instance: "DatabaseManager") -> None:
+    """Called once by main.py lifespan to register the global db_manager."""
+    global _db_manager_instance
+    _db_manager_instance = instance
+
+
 async def get_db():
-    """FastAPI dependency for database access"""
-    db_manager = DatabaseManager()
-    try:
-        yield db_manager
-    finally:
-        await db_manager.close()
+    """FastAPI dependency for database access.
+
+    Yields the application-scoped DatabaseManager so every request reuses
+    the same connection pool instead of creating (and tearing down) a new
+    pool on every request.
+    """
+    if _db_manager_instance is None:
+        raise RuntimeError("DatabaseManager not initialized — call set_db_manager() during app lifespan")
+    yield _db_manager_instance
