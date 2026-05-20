@@ -158,8 +158,8 @@ class TelegramBotService:
             if not settings.TELEGRAM_BOT_TOKEN:
                 raise ValueError("TELEGRAM_BOT_TOKEN not configured")
 
-            # Connect to Redis
-            self.redis_client = await aioredis.from_url(
+            # Connect to Redis — from_url is synchronous in redis-py
+            self.redis_client = aioredis.from_url(
                 settings.get_redis_url(),
                 encoding="utf-8",
                 decode_responses=True

@@ -106,12 +106,15 @@ async def mock_db_manager():
     conn_mock.fetchrow = AsyncMock()
     conn_mock.fetch = AsyncMock(return_value=[])
 
-    # Setup context managers
-    db.get_connection = AsyncMock()
+    # Setup context managers — use MagicMock (not AsyncMock) so that calling
+    # get_connection() / get_transaction() returns return_value directly (a sync
+    # call), allowing `async with db.get_connection() as conn:` to use the
+    # __aenter__/__aexit__ set below rather than getting a bare coroutine.
+    db.get_connection = MagicMock()
     db.get_connection.return_value.__aenter__ = AsyncMock(return_value=conn_mock)
     db.get_connection.return_value.__aexit__ = AsyncMock(return_value=None)
 
-    db.get_transaction = AsyncMock()
+    db.get_transaction = MagicMock()
     db.get_transaction.return_value.__aenter__ = AsyncMock(return_value=conn_mock)
     db.get_transaction.return_value.__aexit__ = AsyncMock(return_value=None)
 

@@ -397,16 +397,27 @@ class TelegramAuthManager:
 
 def require_auth(func):
     """
-    Decorator to require authentication for command handlers
+    Decorator to require authentication for command handlers.
+
+    Works on both module-level functions (update, context) and instance methods
+    (self, update, context) — update and context are always the last two positional args.
 
     Usage:
         @require_auth
         async def cmd_portfolio(update: Update, context: ContextTypes.DEFAULT_TYPE):
-            # This will only execute if user is authenticated
             pass
+
+        class Handlers:
+            @require_auth
+            async def cmd_signals(self, update, context):
+                pass
     """
     @wraps(func)
-    async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def wrapper(*args, **kwargs):
+        # Support both standalone functions (update, context) and
+        # instance methods (self, update, context).
+        update = args[-2]
+        context = args[-1]
         try:
             # Get auth manager from context
             auth_manager: TelegramAuthManager = context.bot_data.get('auth_manager')
@@ -433,8 +444,8 @@ def require_auth(func):
             # Store user in context for handler use
             context.user_data['authenticated_user'] = user
 
-            # Call original handler
-            return await func(update, context)
+            # Call original handler with all original args
+            return await func(*args, **kwargs)
 
         except Exception as e:
             logger.error(f"Auth middleware error: {str(e)}")
@@ -457,7 +468,11 @@ def require_permission(permission: str):
     """
     def decorator(func):
         @wraps(func)
-        async def wrapper(update: Update, context: ContextTypes.DEFAULT_TYPE):
+        async def wrapper(*args, **kwargs):
+            # Support both standalone functions (update, context) and
+            # instance methods (self, update, context).
+            update = args[-2]
+            context = args[-1]
             try:
                 # Get auth manager from context
                 auth_manager: TelegramAuthManager = context.bot_data.get('auth_manager')
@@ -481,8 +496,8 @@ def require_permission(permission: str):
                     )
                     return
 
-                # Call original handler
-                return await func(update, context)
+                # Call original handler with all original args
+                return await func(*args, **kwargs)
 
             except Exception as e:
                 logger.error(f"Permission check error: {str(e)}")

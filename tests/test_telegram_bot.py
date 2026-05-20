@@ -731,18 +731,19 @@ class TestTransactionManager:
         manager = TransactionManager(mock_db_manager, mock_signal_service)
         mock_db_manager.fetch_one.return_value = {
             'id': 'txn-123',
-            'confirmation_code': 'ABC123',
             'expires_at': datetime.now() + timedelta(minutes=5)
         }
 
-        # Act
-        result = await manager.create_pending_transaction(
-            user_id='user-123',
-            transaction_type='buy',
-            stock_code='BBCA',
-            quantity=1000,
-            price=8500
-        )
+        # Patch confirmation code generator so we can assert the exact value returned
+        with patch.object(manager, '_generate_confirmation_code', return_value='ABC123'):
+            # Act
+            result = await manager.create_pending_transaction(
+                user_id='user-123',
+                transaction_type='buy',
+                stock_code='BBCA',
+                quantity=1000,
+                price=8500
+            )
 
         # Assert
         assert result['transaction_id'] == 'txn-123'
