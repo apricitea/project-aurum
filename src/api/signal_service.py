@@ -5,8 +5,6 @@ Integrates with existing ML pipeline and manages signal generation, portfolio tr
 
 import asyncio
 import logging
-import sys
-import os
 from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime, timedelta, time
 import json
@@ -17,13 +15,10 @@ from pathlib import Path
 import pickle
 import aioredis
 
-# Add parent directories to path for imports
-sys.path.append(str(Path(__file__).parent.parent.parent))
-
-from feature_engineering import IDXFeatureEngineer
-from model_ensemble import IDXQuantitativeModel
-from signal_generator import SignalGenerator, AlertSystem
-from main_pipeline import DataCollector, TradingPipeline
+from src.domains.market_data.application.feature_engineering import IDXFeatureEngineer
+from src.domains.trading.infrastructure.ml_models.model_ensemble import IDXQuantitativeModel
+from src.domains.trading.application.services.signal_generator import SignalGenerator, AlertSystem
+from src.data_pipeline.unified_pipeline import UnifiedDataPipeline as DataCollector, UnifiedDataPipeline as TradingPipeline
 
 from .database import DatabaseManager
 from .config import settings
