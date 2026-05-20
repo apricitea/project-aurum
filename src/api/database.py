@@ -474,7 +474,7 @@ class DatabaseManager:
         """Create new alert"""
         async with self.get_transaction() as conn:
             query = """
-                INSERT INTO alerts (alert_type, message, priority, status, metadata,
+                INSERT INTO alerts (alert_type, message, priority, status, meta_data,
                                   stock_code, user_id, expires_at)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
                 RETURNING *
