@@ -36,15 +36,22 @@ class IDXFeatureEngineer:
         self.fundamental_features = []
         self.sentiment_features = []
 
-    def generate_technical_features(self, price_data: pd.DataFrame) -> pd.DataFrame:
+    def generate_technical_features(
+        self,
+        price_data: pd.DataFrame,
+        cross_asset_df: Optional[pd.DataFrame] = None,
+    ) -> pd.DataFrame:
         """
-        Generate technical analysis features optimized for IDX market
+        Generate technical analysis features optimized for IDX market.
 
         Args:
-            price_data: DataFrame with OHLCV data
+            price_data: DataFrame with OHLCV data (columns: open, high, low, close, volume).
+            cross_asset_df: Optional date-indexed DataFrame from CrossAssetLoader.load().
+                            When provided, fills in gold/forex/BTC cross-asset features.
+                            When None, cross-asset columns are set to NaN (backward-compatible).
 
         Returns:
-            DataFrame with technical features
+            DataFrame with all engineered features.
         """
         df = price_data.copy()
 
@@ -60,8 +67,14 @@ class IDXFeatureEngineer:
         # Market microstructure (important for IDX due to lower liquidity)
         df = self._add_microstructure_features(df)
 
-        # Cross-asset features (IDR, commodities impact)
-        df = self._add_cross_asset_features(df)
+        # Multi-timeframe returns and volatility
+        df = self._add_multiframe_features(df)
+
+        # Market regime classification
+        df = self._add_regime_features(df)
+
+        # Cross-asset features (IDR, gold, BTC)
+        df = self._add_cross_asset_features(df, cross_asset_df)
 
         return df
 
@@ -176,21 +189,89 @@ class IDXFeatureEngineer:
 
         return df
 
-    def _add_cross_asset_features(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Add cross-asset features relevant to Indonesian market"""
+    def _add_multiframe_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Multi-timeframe returns and annualised rolling volatility."""
+        # return_60d (1d/3d/5d/10d/20d already exist from _add_price_features)
+        df["return_60d"] = df["close"].pct_change(60)
 
-        # Placeholder for currency and commodity features
-        # In practice, these would be joined from external data sources
+        # Annualised rolling volatility at multiple horizons
+        daily_ret = df["close"].pct_change()
+        df["vol_5d"] = daily_ret.rolling(5).std() * np.sqrt(252)
+        df["vol_10d"] = daily_ret.rolling(10).std() * np.sqrt(252)
+        df["vol_20d"] = daily_ret.rolling(20).std() * np.sqrt(252)
+        df["vol_60d"] = daily_ret.rolling(60).std() * np.sqrt(252)
 
-        # IDR volatility impact (would be calculated from USD/IDR data)
-        # df['idr_volatility'] = ... (from currency data)
+        # Momentum z-score: price deviation from 20d MA in vol units
+        ma20 = df["close"].rolling(20).mean()
+        std20 = df["close"].rolling(20).std()
+        df["momentum_zscore_20d"] = (df["close"] - ma20) / std20.replace(0, np.nan)
 
-        # Commodity price sensitivity (for commodity-exposed stocks)
-        # df['palm_oil_correlation'] = ... (for AALI, LSIP, etc.)
-        # df['coal_price_correlation'] = ... (for ADRO, PTBA, etc.)
+        return df
 
-        # Regional market correlation
-        # df['idx_correlation'] = ... (correlation with IDX Composite)
+    def _add_regime_features(self, df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Classify market regime using realised volatility percentile rank.
+
+        market_regime:
+          0 = low-vol  (vol_20d in bottom third of trailing 252d window)
+          1 = normal
+          2 = high-vol (vol_20d in top third)
+
+        trend_strength: alias for ADX (already computed by _add_technical_indicators).
+        """
+        vol = df.get("vol_20d", df["close"].pct_change().rolling(20).std() * np.sqrt(252))
+
+        # Percentile rank within a rolling 252-day window (min 20 bars)
+        vol_rank = vol.rolling(252, min_periods=20).rank(pct=True)
+        regime = np.where(vol_rank < 0.33, 0.0, np.where(vol_rank > 0.67, 2.0, 1.0))
+        df["market_regime"] = pd.Series(regime, index=df.index).where(vol_rank.notna(), np.nan)
+
+        # trend_strength: ADX already computed in _add_technical_indicators
+        df["trend_strength"] = df["adx"] if "adx" in df.columns else np.nan
+
+        return df
+
+    def _add_cross_asset_features(
+        self,
+        df: pd.DataFrame,
+        cross_asset_df: Optional[pd.DataFrame] = None,
+    ) -> pd.DataFrame:
+        """
+        Join pre-computed cross-asset features (gold, IDR, BTC) onto price data.
+        All features degrade to NaN when cross_asset_df is None or too short.
+
+        cross_asset_df is produced by CrossAssetLoader.load() and is indexed by
+        date with columns: gold_1d_return, gold_5d_return, usdidr_1d_return,
+        usdidr_5d_return, usdidr_vol_20d, btc_1d_return, btc_vol_30d, btc_regime.
+        """
+        passthrough_cols = [
+            "gold_1d_return", "gold_5d_return",
+            "usdidr_1d_return", "usdidr_5d_return", "usdidr_vol_20d",
+            "btc_1d_return", "btc_vol_30d", "btc_regime",
+        ]
+
+        if cross_asset_df is None or cross_asset_df.empty:
+            for col in passthrough_cols + ["stock_btc_corr_20d", "stock_gold_corr_20d"]:
+                df[col] = np.nan
+            return df
+
+        # Align cross-asset data to the stock's date index
+        ca = cross_asset_df.reindex(df.index, method="ffill")
+
+        for col in passthrough_cols:
+            df[col] = ca[col] if col in ca.columns else np.nan
+
+        # Rolling 20-day correlations: stock 1d return vs BTC / gold
+        stock_ret = df["close"].pct_change()
+        if "btc_1d_return" in ca.columns:
+            df["stock_btc_corr_20d"] = stock_ret.rolling(20).corr(ca["btc_1d_return"])
+        else:
+            df["stock_btc_corr_20d"] = np.nan
+
+        if "gold_1d_return" in ca.columns:
+            df["stock_gold_corr_20d"] = stock_ret.rolling(20).corr(ca["gold_1d_return"])
+        else:
+            df["stock_gold_corr_20d"] = np.nan
 
         return df
 

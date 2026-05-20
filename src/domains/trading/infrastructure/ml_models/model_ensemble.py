@@ -17,6 +17,8 @@ import joblib
 import warnings
 warnings.filterwarnings('ignore')
 
+from src.domains.market_data.application.triple_barrier import TripleBarrierLabeler
+
 
 class TechnicalSignalModel:
     """
@@ -64,22 +66,22 @@ class TechnicalSignalModel:
 
     def create_targets(self, data: pd.DataFrame, horizon: int = 5) -> np.ndarray:
         """
-        Create classification targets based on future returns
+        Create triple-barrier labels for each bar.
 
-        Args:
-            data: DataFrame with price data
-            horizon: Forward-looking period for returns
+        Labels: +1.0 (profit target hit), -1.0 (stop-loss hit), 0.0 (time exit).
+        NaN rows are excluded in train() via the existing mask.
 
-        Returns:
-            Array of target classes
+        ATR must be present in `data` (computed by IDXFeatureEngineer).
+        Falls back to binary sign-of-return labels if ATR is missing.
         """
-        # Calculate forward returns
-        forward_returns = data['close'].pct_change(horizon).shift(-horizon)
+        if "atr" not in data.columns or data["atr"].isna().all():
+            # Fallback: binary label based on sign of forward return
+            fwd = data["close"].pct_change(horizon).shift(-horizon)
+            return np.where(fwd > 0, 1.0, -1.0)
 
-        # Create quantile-based targets
-        targets = pd.qcut(forward_returns, q=4, labels=['Sell', 'Hold', 'Buy', 'Strong_Buy'])
-
-        return targets.values
+        labeler = TripleBarrierLabeler(pt_sl=(2.0, 1.0), max_holding=horizon * 2)
+        labels = labeler.label(data["close"], data["atr"])
+        return labels.values
 
     def train(self, data: pd.DataFrame, target_horizon: int = 5) -> Dict[str, float]:
         """
