@@ -207,9 +207,9 @@ class Settings(BaseSettings):
         """Get database connection URL"""
         if self.DB_URL:
             return self.DB_URL
-        # For development, prefer SQLite if PostgreSQL credentials are defaults
-        if (self.ENVIRONMENT.lower() == "development" and
-            self.DB_PASSWORD == "password" and self.DB_USER == "postgres"):
+        # SQLite fallback only in development with default credentials
+        if (self.ENVIRONMENT.lower() not in ("production", "staging") and
+                self.DB_PASSWORD == "password" and self.DB_USER == "postgres"):
             return "sqlite:///./data/trading_system.db"
         return (
             f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}"
@@ -408,9 +408,20 @@ def validate_configuration():
         if not all([twilio_config.get("account_sid"), twilio_config.get("auth_token")]):
             errors.append("Twilio configuration is incomplete")
 
-    # Validate model path
-    if not os.path.exists(os.path.dirname(settings.MODEL_PATH)):
-        errors.append(f"Model directory does not exist: {os.path.dirname(settings.MODEL_PATH)}")
+    # Validate ALLOWED_ORIGINS in production
+    if settings.is_production():
+        placeholder_origins = {"https://trading.yourcompany.com", "https://api.yourcompany.com"}
+        if set(settings.ALLOWED_ORIGINS) & placeholder_origins:
+            errors.append(
+                "ALLOWED_ORIGINS contains placeholder URLs — set the ALLOWED_ORIGINS env var for your domain"
+            )
+        if "*" in settings.ALLOWED_ORIGINS:
+            errors.append("ALLOWED_ORIGINS must not be '*' in production")
+
+    # Validate model path (only warn if the dirname is non-empty — avoid spurious errors for relative paths)
+    model_dir = os.path.dirname(settings.MODEL_PATH)
+    if model_dir and not os.path.exists(model_dir):
+        errors.append(f"Model directory does not exist: {model_dir}")
 
     # Validate risk limits
     risk_limits = settings.get_risk_limits()
