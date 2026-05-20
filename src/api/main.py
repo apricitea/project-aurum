@@ -3,7 +3,7 @@ Main FastAPI Application for Indonesian Quantitative Trading Alert System
 Provides REST API endpoints for alert management, portfolio tracking, and real-time monitoring
 """
 
-from fastapi import FastAPI, HTTPException, Depends, Security, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Depends, Security, BackgroundTasks, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware

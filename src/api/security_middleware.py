@@ -11,7 +11,7 @@ import asyncio
 from typing import Dict, List, Optional, Any, Callable
 from datetime import datetime, timedelta
 from fastapi import Request, Response, HTTPException, status
-from fastapi.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import RequestResponseEndpoint
 import redis.asyncio as aioredis
