@@ -11,7 +11,7 @@ from sklearn.ensemble import GradientBoostingClassifier, GradientBoostingRegress
 from sklearn.linear_model import LinearRegression, Ridge, LogisticRegression
 from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.model_selection import TimeSeriesSplit, cross_val_score
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support, sharpe_ratio
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 import xgboost as xgb
 import joblib
 import warnings
@@ -190,7 +190,7 @@ class FundamentalValueModel:
         ]
 
         # Handle missing values with forward fill and median
-        feature_matrix = data[fundamental_cols].fillna(method='ffill').fillna(0)
+        feature_matrix = data[fundamental_cols].ffill().fillna(0)
 
         # Remove extreme outliers (beyond 3 standard deviations)
         for col in fundamental_cols:
@@ -428,7 +428,6 @@ class EnsembleMetaModel:
         self.config = config or {
             'alpha': 1.0,  # Regularization strength
             'fit_intercept': True,
-            'normalize': False
         }
 
         self.model = Ridge(**self.config)
