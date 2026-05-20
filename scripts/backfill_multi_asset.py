@@ -63,11 +63,11 @@ def main() -> int:
         logger.error("Forex FAILED: %s", r.error_message)
         errors += 1
 
-    # BTC 1m — 60 days (Binance)
-    # 60 days × 24h × 60min = 86,400 bars → ~87 paginated requests
-    logger.info("Backfilling BTC 1m (60 days, ~87 API calls — this takes ~5 min)...")
+    # BTC 1m — 7 days max (yfinance hard limit for 1m interval)
+    # Daily pipeline will accumulate data up to the 60-day retention window
+    logger.info("Backfilling BTC-USD 1m (7 days, yfinance)...")
     with Session() as session:
-        results, job_id = BinanceFetcher(session).fetch(lookback_minutes=60 * 24 * 60)
+        results, job_id = BinanceFetcher(session).fetch(lookback_minutes=7 * 24 * 60)
         session.commit()
     r = results[0]
     if r.success:

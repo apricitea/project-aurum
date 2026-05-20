@@ -205,12 +205,21 @@ class ForexFetcher:
 
 class BinanceFetcher:
     """
-    Fetches BTC/USDT 1-minute klines from Binance public REST API.
-    No API key required. Paginates automatically for long lookbacks.
+    Fetches BTC 1-minute candles via yfinance (BTC-USD).
+
+    Uses yfinance as the primary source — Binance REST is blocked on this homelab.
+    yfinance supports max 7-day lookback for 1m interval; the daily pipeline timer
+    ensures continuous accumulation up to the 60-day retention window.
+
+    To swap in Binance REST when network access is available:
+      Replace the yfinance call with the Binance klines endpoint:
+      GET https://api.binance.com/api/v3/klines?symbol=BTCUSDT&interval=1m
     """
 
-    SYMBOL = "BTCUSDT"
+    SYMBOL = "BTC-USD"
+    YF_SYMBOL = "BTC-USD"
     INTERVAL = "1m"
+    MAX_LOOKBACK_DAYS = 7  # yfinance 1m hard limit
 
     def __init__(self, db_session: Session) -> None:
         self.db_session = db_session
@@ -218,57 +227,34 @@ class BinanceFetcher:
     def fetch(self, lookback_minutes: int = 1440) -> Tuple[List[FetchResult], str]:
         """
         Fetch last `lookback_minutes` of 1m BTC candles.
-        Paginates in 1000-bar chunks if needed.
+        Capped at MAX_LOOKBACK_DAYS * 1440 due to yfinance limits.
         """
         job = self._start_job()
         try:
-            end_ms = int(datetime.utcnow().timestamp() * 1000)
-            start_ms = end_ms - lookback_minutes * 60 * 1000
+            max_minutes = self.MAX_LOOKBACK_DAYS * 24 * 60
+            actual_minutes = min(lookback_minutes, max_minutes)
+            # yfinance 1m: period must be ≤ 7d
+            period_days = max(1, min(7, (actual_minutes + 1439) // 1440))
 
-            all_klines: list = []
-            current_start = start_ms
+            df = yf.Ticker(self.YF_SYMBOL).history(period=f"{period_days}d", interval="1m")
 
-            while current_start < end_ms:
-                resp = requests.get(
-                    BINANCE_KLINES_URL,
-                    params={
-                        "symbol": self.SYMBOL,
-                        "interval": self.INTERVAL,
-                        "startTime": current_start,
-                        "endTime": end_ms,
-                        "limit": BINANCE_MAX_LIMIT,
-                    },
-                    timeout=30,
-                )
-                if not resp.ok:
-                    raise RuntimeError(f"Binance API error: HTTP {resp.status_code}")
-
-                batch = resp.json()
-                if not batch:
-                    break
-
-                all_klines.extend(batch)
-
-                if len(batch) < BINANCE_MAX_LIMIT:
-                    break  # got all remaining bars
-
-                # Advance past last candle's open time by one interval
-                current_start = batch[-1][0] + 60 * 1000
+            if df.empty:
+                raise ValueError(f"yfinance returned empty dataframe for {self.YF_SYMBOL} 1m")
 
             records = [
                 dict(
                     symbol=self.SYMBOL,
-                    timestamp=datetime.utcfromtimestamp(k[0] / 1000),
+                    timestamp=ts.to_pydatetime().replace(tzinfo=None),
                     interval=self.INTERVAL,
-                    open_price=float(k[1]),
-                    high_price=float(k[2]),
-                    low_price=float(k[3]),
-                    close_price=float(k[4]),
-                    volume=float(k[5]),
-                    quote_volume=float(k[7]),
+                    open_price=float(row["Open"]),
+                    high_price=float(row["High"]),
+                    low_price=float(row["Low"]),
+                    close_price=float(row["Close"]),
+                    volume=float(row["Volume"]),
+                    quote_volume=None,  # not available from yfinance
                     fetched_at=datetime.utcnow(),
                 )
-                for k in all_klines
+                for ts, row in df.iterrows()
             ]
             self._upsert(records)
             self._complete_job(job, len(records))

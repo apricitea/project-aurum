@@ -97,58 +97,50 @@ class TestForexFetcher:
 
 
 # ------------------------------------------------------------------ #
-# BinanceFetcher
+# BinanceFetcher (uses yfinance for BTC-USD 1m — Binance blocked on homelab)
 # ------------------------------------------------------------------ #
 
-def _binance_klines(n: int = 5) -> list:
-    """Minimal Binance kline format: [open_time, o, h, l, c, vol, close_time, quote_vol, ...]"""
-    base = int(datetime(2026, 1, 1).timestamp() * 1000)
-    return [
-        [base + i * 60000, "50000", "50100", "49900", "50050", "1.5",
-         base + i * 60000 + 59999, "75075.0", 100, "0.8", "40000", "0"]
-        for i in range(n)
-    ]
+def _btc_ohlcv_df(rows: int = 10) -> pd.DataFrame:
+    idx = pd.date_range("2026-01-01", periods=rows, freq="min", tz="UTC")
+    return pd.DataFrame(
+        {
+            "Open": [50000.0] * rows,
+            "High": [50100.0] * rows,
+            "Low": [49900.0] * rows,
+            "Close": [50050.0] * rows,
+            "Volume": [1.5] * rows,
+        },
+        index=idx,
+    )
 
 
 class TestBinanceFetcher:
     def test_fetch_saves_records(self, db_session):
-        with patch("src.data_pipeline.multi_asset_fetcher.requests.get") as mock_get:
-            mock_get.return_value.ok = True
-            mock_get.return_value.json.return_value = _binance_klines(10)
+        with patch("src.data_pipeline.multi_asset_fetcher.yf.Ticker") as mock_ticker:
+            mock_ticker.return_value.history.return_value = _btc_ohlcv_df(10)
             fetcher = BinanceFetcher(db_session)
             results, job_id = fetcher.fetch(lookback_minutes=60)
 
         assert results[0].success
         assert results[0].records_fetched == 10
 
-    def test_fetch_handles_api_error(self, db_session):
-        with patch("src.data_pipeline.multi_asset_fetcher.requests.get") as mock_get:
-            mock_get.return_value.ok = False
-            mock_get.return_value.status_code = 429
+    def test_fetch_handles_empty_response(self, db_session):
+        with patch("src.data_pipeline.multi_asset_fetcher.yf.Ticker") as mock_ticker:
+            mock_ticker.return_value.history.return_value = pd.DataFrame()
             fetcher = BinanceFetcher(db_session)
             results, _ = fetcher.fetch(lookback_minutes=60)
 
         assert results[0].success is False
 
-    def test_fetch_paginates_when_needed(self, db_session):
-        """lookback > 1000 bars triggers multiple API calls."""
-        call_count = 0
+    def test_fetch_caps_lookback_at_7_days(self, db_session):
+        """Lookback > 7 days is silently capped to 7d (yfinance 1m limit)."""
+        with patch("src.data_pipeline.multi_asset_fetcher.yf.Ticker") as mock_ticker:
+            mock_ticker.return_value.history.return_value = _btc_ohlcv_df(5)
+            BinanceFetcher(db_session).fetch(lookback_minutes=60 * 24 * 60)  # 60 days
 
-        def side_effect(*args, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            mock = MagicMock()
-            mock.ok = True
-            # First call returns full page (triggers pagination), second returns partial
-            mock.json.return_value = _binance_klines(1000) if call_count == 1 else _binance_klines(200)
-            return mock
-
-        with patch("src.data_pipeline.multi_asset_fetcher.requests.get", side_effect=side_effect):
-            fetcher = BinanceFetcher(db_session)
-            results, _ = fetcher.fetch(lookback_minutes=1500)
-
-        assert call_count == 2
-        assert results[0].records_fetched == 1200
+        # Should have been called with period="7d", not "60d"
+        call_kwargs = mock_ticker.return_value.history.call_args
+        assert call_kwargs.kwargs.get("period", "") == "7d"
 
 
 # ------------------------------------------------------------------ #
