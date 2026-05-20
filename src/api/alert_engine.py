@@ -17,7 +17,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import aioredis
 import websockets
-from celery import Celery
 import telegram
 from twilio.rest import Client as TwilioClient
 
@@ -335,7 +334,6 @@ class AlertEngine:
     def __init__(self, db_manager: DatabaseManager):
         self.db_manager = db_manager
         self.redis_client = None
-        self.celery_app = None
         self.notification_channels: Dict[str, NotificationChannel] = {}
         self.alert_rules: Dict[str, AlertRule] = {}
         self.websocket_clients: Dict[str, Any] = {}
@@ -355,13 +353,6 @@ class AlertEngine:
                 f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}",
                 encoding="utf-8",
                 decode_responses=True
-            )
-
-            # Initialize Celery for background tasks
-            self.celery_app = Celery(
-                'alert_engine',
-                broker=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0",
-                backend=f"redis://{settings.REDIS_HOST}:{settings.REDIS_PORT}/0"
             )
 
             # Start background alert processor
