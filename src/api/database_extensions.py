@@ -426,3 +426,69 @@ class AuctionMarketProfile(Base):
         Index('idx_amt_stock_date', 'stock_code', 'session_date'),
         Index('idx_amt_profile_type', 'profile_type', 'session_date'),
     )
+
+
+class GoldPrice(Base):
+    """Daily gold futures OHLCV (GC=F via yfinance)."""
+    __tablename__ = "gold_prices"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    timestamp = Column(DateTime, nullable=False, index=True)  # UTC midnight for daily
+    interval = Column(String(5), nullable=False, default="1d")
+    open_price = Column(Float)
+    high_price = Column(Float)
+    low_price = Column(Float)
+    close_price = Column(Float, nullable=False)
+    volume = Column(Float)
+    fetched_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("timestamp", "interval", name="uq_gold_ts_interval"),
+        Index("idx_gold_ts_desc", "timestamp"),
+    )
+
+
+class ForexRate(Base):
+    """Daily forex OHLCV — one row per (symbol, timestamp, interval)."""
+    __tablename__ = "forex_rates"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    symbol = Column(String(20), nullable=False, index=True)  # e.g. USDIDR=X
+    timestamp = Column(DateTime, nullable=False, index=True)
+    interval = Column(String(5), nullable=False, default="1d")
+    rate = Column(Float, nullable=False)        # close
+    open_rate = Column(Float)
+    high_rate = Column(Float)
+    low_rate = Column(Float)
+    fetched_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("symbol", "timestamp", "interval", name="uq_forex_symbol_ts_interval"),
+        Index("idx_forex_symbol_ts", "symbol", "timestamp"),
+    )
+
+
+class CryptoPrice(Base):
+    """
+    OHLCV for crypto assets. Interval '1m' rows are purged after 60 days.
+    Uses Binance kline timestamps (open time, UTC).
+    """
+    __tablename__ = "crypto_prices"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    symbol = Column(String(20), nullable=False, index=True)  # e.g. BTCUSDT
+    timestamp = Column(DateTime, nullable=False, index=True)  # candle open time UTC
+    interval = Column(String(5), nullable=False)              # 1m, 1d
+    open_price = Column(Float)
+    high_price = Column(Float)
+    low_price = Column(Float)
+    close_price = Column(Float, nullable=False)
+    volume = Column(Float)        # base asset (BTC)
+    quote_volume = Column(Float)  # USDT volume — useful for liquidity signal
+    fetched_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("symbol", "timestamp", "interval", name="uq_crypto_symbol_ts_interval"),
+        Index("idx_crypto_symbol_ts", "symbol", "timestamp"),
+        Index("idx_crypto_retention", "interval", "timestamp"),  # fast deletes
+    )
