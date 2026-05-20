@@ -20,6 +20,7 @@ from .daily_price_fetcher import DailyPriceFetcher
 from .data_integration_service import DataIntegrationService
 from .fundamentals_ingestion import FundamentalsIngestionService
 from .intraday_price_fetcher import IntradayPriceFetcher
+from .multi_asset_fetcher import GoldFetcher, ForexFetcher, BinanceFetcher, MultiAssetRetentionCleaner
 from .news_ingestion import NewsIngestionService
 from ..shared.feature_store import FeatureStore, FeatureStoreConfig
 from ..domains.market_data.application.amt_service import AuctionMarketTheoryService
@@ -57,10 +58,12 @@ class UnifiedDataPipeline:
 
     def run_end_of_day(self, config: PipelineRunConfig = PipelineRunConfig()) -> None:
         with self.session_scope() as session:
+            self._run_retention_cleanup(session)
             self._run_daily_prices(session, config.stock_codes)
             self._run_intraday(session, config.stock_codes, config.intraday_intervals)
             self._run_news(session, config.stock_codes, config.news_max_articles)
             self._maybe_run_fundamentals(session, config.stock_codes, config.fundamentals_frequency)
+            self._run_multi_asset(session)
             if config.export_feature_store:
                 self._export_feature_store(session, config.stock_codes)
 
@@ -154,6 +157,30 @@ class UnifiedDataPipeline:
                 session_date,
                 sum(1 for r in results if r.success),
             )
+
+    def _run_retention_cleanup(self, session: Session) -> None:
+        cleaner = MultiAssetRetentionCleaner(session)
+        deleted = cleaner.purge_old_1m_data(retain_days=60)
+        logger.info("Retention cleanup: removed %s stale 1m crypto rows", deleted)
+
+    def _run_multi_asset(self, session: Session) -> None:
+        gold_results, gold_job = GoldFetcher(session).fetch(backfill_days=3)
+        logger.info(
+            "Gold fetch job=%s success=%s records=%s",
+            gold_job, gold_results[0].success, gold_results[0].records_fetched,
+        )
+
+        forex_results, forex_job = ForexFetcher(session, symbol="USDIDR=X").fetch(backfill_days=3)
+        logger.info(
+            "Forex fetch job=%s success=%s records=%s",
+            forex_job, forex_results[0].success, forex_results[0].records_fetched,
+        )
+
+        btc_results, btc_job = BinanceFetcher(session).fetch(lookback_minutes=1440)
+        logger.info(
+            "BTC 1m fetch job=%s success=%s records=%s",
+            btc_job, btc_results[0].success, btc_results[0].records_fetched,
+        )
 
     def _export_feature_store(self, session: Session, stock_codes: Optional[List[str]]) -> None:
         integration = DataIntegrationService(session)
