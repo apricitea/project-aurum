@@ -265,6 +265,58 @@ class BinanceFetcher:
             self._fail_job(job, str(exc))
             return [FetchResult(symbol=self.SYMBOL, success=False, records_fetched=0, error_message=str(exc))], str(job.id)
 
+    def fetch_daily(self, backfill_days: int = 3) -> Tuple[List[FetchResult], str]:
+        """
+        Fetch recent daily BTC-USD candles via yfinance.
+        Runs alongside fetch() in the daily pipeline to keep interval='1d' rows current.
+        Daily rows are retained forever (retention cleaner only purges interval='1m').
+        """
+        job = DataRefreshLog(
+            job_name="crypto_btc_1d",
+            job_type="multi_asset",
+            started_at=datetime.utcnow(),
+            status="running",
+        )
+        self.db_session.add(job)
+        self.db_session.flush()
+
+        try:
+            df = yf.Ticker(self.YF_SYMBOL).history(period=f"{max(backfill_days, 5)}d", interval="1d")
+            if df.empty:
+                raise ValueError(f"yfinance returned empty dataframe for {self.YF_SYMBOL} 1d")
+
+            records = [
+                dict(
+                    symbol=self.SYMBOL,
+                    timestamp=ts.to_pydatetime().replace(tzinfo=None),
+                    interval="1d",
+                    open_price=float(row["Open"]),
+                    high_price=float(row["High"]),
+                    low_price=float(row["Low"]),
+                    close_price=float(row["Close"]),
+                    volume=float(row["Volume"]),
+                    quote_volume=None,
+                    fetched_at=datetime.utcnow(),
+                )
+                for ts, row in df.iterrows()
+            ]
+            self._upsert(records)
+            job.status = "completed"
+            job.completed_at = datetime.utcnow()
+            job.records_inserted = len(records)
+            job.records_processed = len(records)
+            job.duration_seconds = (job.completed_at - job.started_at).total_seconds()
+            self.db_session.flush()
+            return [FetchResult(symbol=self.SYMBOL, success=True, records_fetched=len(records))], str(job.id)
+
+        except Exception as exc:
+            logger.warning("BinanceFetcher.fetch_daily failed: %s", exc)
+            job.status = "failed"
+            job.completed_at = datetime.utcnow()
+            job.error_message = str(exc)
+            self.db_session.flush()
+            return [FetchResult(symbol=self.SYMBOL, success=False, records_fetched=0, error_message=str(exc))], str(job.id)
+
     def _upsert(self, records: list) -> None:
         if not records:
             return

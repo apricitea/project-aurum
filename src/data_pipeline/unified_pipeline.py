@@ -176,10 +176,18 @@ class UnifiedDataPipeline:
             forex_job, forex_results[0].success, forex_results[0].records_fetched,
         )
 
-        btc_results, btc_job = BinanceFetcher(session).fetch(lookback_minutes=1440)
+        btc_fetcher = BinanceFetcher(session)
+
+        btc_results, btc_job = btc_fetcher.fetch(lookback_minutes=1440)
         logger.info(
             "BTC 1m fetch job=%s success=%s records=%s",
             btc_job, btc_results[0].success, btc_results[0].records_fetched,
+        )
+
+        btc_daily_results, btc_daily_job = btc_fetcher.fetch_daily(backfill_days=3)
+        logger.info(
+            "BTC 1d fetch job=%s success=%s records=%s",
+            btc_daily_job, btc_daily_results[0].success, btc_daily_results[0].records_fetched,
         )
 
     def _export_feature_store(self, session: Session, stock_codes: Optional[List[str]]) -> None:
