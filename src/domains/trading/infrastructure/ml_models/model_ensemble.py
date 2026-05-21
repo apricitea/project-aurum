@@ -18,6 +18,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 from src.domains.market_data.application.triple_barrier import TripleBarrierLabeler
+from .lightgbm_model import LightGBMSignalModel
 
 
 class TechnicalSignalModel:
@@ -577,9 +578,9 @@ class IDXQuantitativeModel:
     def __init__(self, config: Dict = None):
         self.config = config or {}
 
-        # Initialize specialized models
-        self.technical_model = TechnicalSignalModel(
-            self.config.get('technical', {})
+        # Initialize specialized models — LightGBM replaces RandomForest for primary signal
+        self.technical_model = LightGBMSignalModel(
+            self.config.get('technical', None)
         )
         self.fundamental_model = FundamentalValueModel(
             self.config.get('fundamental', {})
