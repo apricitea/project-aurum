@@ -64,6 +64,9 @@ dependencies = [
     "tzdata==2024.2",
     "python3-distutils>=0.0.1",
     "setuptools>=80.9.0",
+    "lightgbm>=4.0",
+    "shap>=0.44",
+    "vectorbt>=0.26",
 ]
 
 [dependency-groups]
