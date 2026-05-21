@@ -177,12 +177,25 @@ class LightGBMSignalModel:
             explainer = shap.TreeExplainer(self.model)
             # Use a sample to keep it fast (max 500 rows)
             sample = X_scaled[:500] if len(X_scaled) > 500 else X_scaled
-            shap_values = explainer.shap_values(sample)
-            # shap_values is a list (one array per class) or a single array
-            if isinstance(shap_values, list):
-                mean_abs = np.abs(np.array(shap_values)).mean(axis=0).mean(axis=0)
+            # shap 0.44+ returns an Explanation object; older returns array/list
+            raw = explainer(sample)
+            if hasattr(raw, "values"):
+                sv = raw.values  # Explanation object → ndarray (n_samples, n_features[, n_classes])
             else:
-                mean_abs = np.abs(shap_values).mean(axis=0)
+                sv = raw  # legacy: array or list of arrays
+
+            sv_arr = np.array(sv)
+            # Normalise shape to (n_samples, n_features) by averaging over classes
+            if sv_arr.ndim == 3:
+                sv_arr = sv_arr.mean(axis=-1)   # (n_samples, n_features, n_classes) → (n_samples, n_features)
+            elif sv_arr.ndim == 2 and sv_arr.shape[1] != len(self.feature_names):
+                # list-of-arrays case stacked as (n_classes, n_samples, n_features)
+                sv_arr = np.abs(sv_arr).mean(axis=0)
+
+            mean_abs = np.abs(sv_arr).mean(axis=0)
+            if mean_abs.ndim > 1:
+                mean_abs = mean_abs.mean(axis=-1)
+
             self.feature_importance = pd.DataFrame(
                 {"feature": self.feature_names, "importance": mean_abs}
             ).sort_values("importance", ascending=False)
