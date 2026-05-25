@@ -6,6 +6,7 @@ Coordinates daily, intraday, fundamentals, and news ingestion with feature store
 from __future__ import annotations
 
 import logging
+import os
 from contextlib import contextmanager
 from dataclasses import dataclass
 from datetime import datetime, date
@@ -115,6 +116,9 @@ class UnifiedDataPipeline:
         should_run = self._should_run_fundamentals(frequency)
         if not should_run:
             logger.info("Skipping fundamentals ingestion (frequency=%s)", frequency)
+            return
+        if not os.getenv("ALPHA_VANTAGE_API_KEY"):
+            logger.warning("Skipping fundamentals ingestion: ALPHA_VANTAGE_API_KEY is not configured")
             return
         service = FundamentalsIngestionService(session)
         results, job_id = service.ingest_fundamentals(stock_codes=stock_codes)
