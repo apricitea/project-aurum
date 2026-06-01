@@ -249,3 +249,6 @@ load_test_results.log
 
 .history/
 .uv-cache/
+
+# Generated feature store snapshots
+data/feature_store/**/*.parquet
