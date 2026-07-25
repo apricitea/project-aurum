@@ -1,69 +1,147 @@
 # Project Aurum
 
-**Indonesian Quantitative Trading System** - Professional-grade trading platform optimized for the Indonesian Stock Exchange (IDX) with ensemble machine learning, real-time alerting, and comprehensive risk management.
+Quantitative trading system for the Indonesian Stock Exchange (IDX). Ensemble ML signal generation with rigorous time-series validation methodology, real-time alerting, and risk management.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
-[![Production Ready](https://img.shields.io/badge/Production-Ready-brightgreen.svg)](https://github.com/yourusername/project-aurum)
+**Team:** [apricitea](https://github.com/apricitea), [na-ive](https://github.com/na-ive), [mfalfath25](https://github.com/mfalfath25), [rizbud](https://github.com/rizbud)
 
-## 🚀 Quick Start
+---
 
-Project Aurum now standardises on [uv](https://github.com/astral-sh/uv) for all Python dependency and virtual-env management.
+## Backtest Results
+
+XGBoost signal model, out-of-sample on 2025 IDX data (trained on 2020–2024):
+
+| Metric | Result |
+|---|---|
+| Total return | 195.6% |
+| Sharpe ratio | 2.70 |
+| Win rate | 44.2% |
+| Max drawdown | -17.6% |
+| Total trades | 509 |
+| Transaction costs | Included (0.15% buy / 0.25% sell) |
+
+> Backtested results, not live performance.
+
+---
+
+## ML Methodology
+
+The signal pipeline follows López de Prado's *Advances in Financial Machine Learning* (2018).
+
+### Labeling — Triple Barrier
+
+Each bar is labeled using ATR-scaled barriers rather than simple forward returns:
+- Upper barrier: `close + pt_multiplier × ATR` → label +1 (profit target hit)
+- Lower barrier: `close - sl_multiplier × ATR` → label -1 (stop loss hit)
+- Vertical barrier: `t + max_holding` → label 0 (time exit)
+
+Produces labels that reflect actual tradeable outcomes, avoiding distortion from arbitrary quantile-based labeling.
+
+### Validation — Walk-Forward CV with Embargo
+
+Rolling walk-forward folds with an embargo gap between train end and test start prevent leakage from autocorrelated observations (López de Prado Ch. 7). Default: 252-day training window, 63-day test window, 5-day embargo.
+
+### Model Ensemble
+
+| Model | Role |
+|---|---|
+| LightGBM (primary) | Signal generation — BUY / SELL / HOLD with confidence score |
+| XGBoost | Ensemble member |
+| Random Forest | Technical signal baseline |
+| Meta-Labeler (LightGBM) | Secondary classifier predicting signal reliability |
+
+The meta-labeler is trained on out-of-sample predictions from the primary model. At inference, position size is scaled by `predict_bet_size(X)`. Positions below a confidence threshold (default 0.6) are filtered, suppressing signals in noisy conditions.
+
+### Explainability
+
+SHAP values computed per signal from the LightGBM model. Each alert surfaces the top contributing features — signals are auditable, not black-box.
+
+---
+
+## Architecture
+
+```
+src/
+  domains/
+    trading/
+      infrastructure/
+        ml_models/
+          lightgbm_model.py      # Primary signal model with SHAP
+          model_ensemble.py      # Ensemble coordination
+          meta_labeler.py        # Bet-size / reliability filter
+          walk_forward.py        # WalkForwardValidator with embargo
+        backtesting/
+          backtest_engine.py     # vectorbt-based backtest with IDX costs
+    market_data/
+      application/
+        triple_barrier.py        # ATR-scaled triple-barrier labeler
+  api/                           # FastAPI application
+apps/
+  web_dashboard/                 # React + TypeScript frontend
+```
+
+Data flow: IDX price feed → feature engineering → triple-barrier labeling → walk-forward CV → ensemble training → meta-labeler → signal + confidence + SHAP → Telegram alert / dashboard
+
+---
+
+## Stack
+
+| Layer | Technology |
+|---|---|
+| Signal models | LightGBM, XGBoost, scikit-learn |
+| Backtesting | vectorbt |
+| Explainability | SHAP |
+| API | FastAPI + asyncpg + SQLAlchemy 2.0 |
+| Queue | Celery + Redis |
+| Database | PostgreSQL 15 |
+| Frontend | React 18 + TypeScript + Vite + Tailwind |
+| Agents | LangChain 0.3 + LangGraph 0.4 |
+| Alerts | Telegram (python-telegram-bot) |
+| Dependency management | uv |
+
+---
+
+## Quick Start
 
 ```bash
-# Clone and bootstrap
-git clone https://github.com/yourusername/project-aurum.git
+git clone https://github.com/apricitea/project-aurum.git
 cd project-aurum
-
-# Create your environment and install dependencies
 uv sync
+cp .env.example .env   # fill in credentials
 
-# Run database bootstrap (creates tables & seeds IDX master data)
-uv run python scripts/setup_stock_data_pipeline.py
-
-# Optional: execute unified data pipeline (requires outbound network access)
-uv run python - <<'PY'
-from datetime import date
-from src.api.config import settings
-from src.data_pipeline.unified_pipeline import UnifiedDataPipeline, PipelineRunConfig
-pipeline = UnifiedDataPipeline(db_url=settings.get_database_url())
-pipeline.run_end_of_day(PipelineRunConfig())
-PY
-
-# Launch stack
+uv run alembic upgrade head   # run migrations
 docker-compose up -d
 ```
 
-Access endpoints once services are running:
-- API: `http://localhost:8000`
-- Dashboard: `http://localhost:3000`
+API at `http://localhost:8000`, dashboard at `http://localhost:3000`. See `.env.example` for required credentials (database, Telegram, Alpha Vantage).
 
-> ℹ️ If you previously relied on `pip`/`poetry`, remove those steps and always use `uv sync` (`uv run <command>` for execution) to avoid divergent lockfiles.
+## Development
 
-## 📚 Documentation
+```bash
+# Backend (hot reload)
+cd src && uvicorn api.main:app --reload
 
-**Complete documentation is in [`docs/`](./docs/README.md)**
+# Frontend
+cd apps/web_dashboard && npm run dev
 
-- 🎓 **[Getting Started](./docs/tutorials/getting-started.md)** - Your first setup
-- 🔧 **[Developer Guide](./docs/how-to-guides/development/)** - Development workflow
-- 🚀 **[Deployment](./docs/how-to-guides/deployment/)** - Production deployment
-- 📖 **[API Reference](./docs/reference/api/)** - Complete API docs
-- 💡 **[Architecture](./docs/reference/architecture/)** - System design
+# Tests
+pytest src/
+```
 
-## ⚡ Key Features
+---
 
-- **🤖 Advanced ML Ensemble** - Multi-model trading signals for IDX
-- **📊 Real-time Dashboard** - React TypeScript frontend
-- **🛡️ Risk Management** - Comprehensive portfolio protection
-- **📱 Multi-channel Alerts** - Email, Telegram, SMS notifications
-- **🇮🇩 Indonesian Optimized** - Built specifically for IDX market
+## License
 
-## 🏗️ Project Structure
+MIT
+
+---
+
+<!-- legacy content below preserved for reference -->
+
+## Project Structure
 
 ```
 project-aurum/
-├── 📁 src/                           # 🔧 Source Code (Domain-Driven Design)
+├── src/                           # Source Code (Domain-Driven Design)
 │   ├── domains/                      # Business domains (bounded contexts)
 │   │   ├── trading/                  # 📈 Core trading logic & signals
 │   │   │   ├── core/                 # Entities, value objects, domain services
@@ -161,44 +239,3 @@ Populate the following keys in a `.env` file (see [`docs/operations/credentials_
 Additional optional keys (e.g., Redis, webhook URLs) retain legacy defaults; fill them if those integrations are active.
 
 
-## 🎯 Indonesian Market Focus
-
-- **IDX Integration** - Real-time Indonesian Stock Exchange data
-- **LQ45 Optimization** - Focus on most liquid Indonesian stocks
-- **WIB Timezone** - Perfect for Indonesian trading hours
-- **OJK Compliance** - Indonesian regulatory requirements
-- **IDR Currency** - Native Indonesian Rupiah support
-
-## 📊 Performance Targets
-
-| Metric | Target | Status |
-|--------|--------|--------|
-| Annual Return | 15-25% | ✅ Backtested |
-| Sharpe Ratio | 1.2-1.8 | ✅ Validated |
-| Max Drawdown | <15% | ✅ Risk-managed |
-| Signal Latency | <1 minute | ✅ Real-time |
-
-## 💻 Development
-
-```bash
-# Backend
-cd src && uvicorn api.main:app --reload
-
-# Frontend
-cd apps/web_dashboard && npm run dev
-
-# Tests
-pytest src/
-```
-
-## 🤝 Contributing
-
-See [Contributing Guide](./docs/how-to-guides/development/contributing-code.md)
-
-## 📄 License
-
-MIT License - see [LICENSE](LICENSE) file for details.
-
----
-
-**🚀 Ready to start?** → [Getting Started Guide](./docs/tutorials/getting-started.md)
