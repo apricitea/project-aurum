@@ -146,8 +146,18 @@ class LightGBMSignalModel:
                 oos_scores.append(fold_model.score(X_te, y_te))
                 logger.debug("Fold %s OOS accuracy: %.4f", fold.fold_id, oos_scores[-1])
 
-        # Final model on all data
-        self.model.fit(X_scaled_all, y_all)
+        # Final model — use last 15% as early-stopping validation to prevent memorization
+        val_size = max(int(len(X_scaled_all) * 0.15), 10)
+        X_tr_final = X_scaled_all[:-val_size]
+        y_tr_final = y_all[:-val_size]
+        X_val_final = X_scaled_all[-val_size:]
+        y_val_final = y_all[-val_size:]
+
+        self.model.fit(
+            X_tr_final, y_tr_final,
+            eval_set=[(X_val_final, y_val_final)],
+            callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(-1)],
+        )
         self.classes_ = self.model.classes_
         self.is_trained = True
 
