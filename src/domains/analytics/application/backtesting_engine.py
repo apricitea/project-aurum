@@ -1,304 +1,313 @@
 """
-Advanced Backtesting Engine for Indonesian Trading Signals
-Provides detailed performance analysis with confidence-based metrics
+Backtesting Engine for Indonesian Stock Exchange (IDX) trading signals.
+Accepts real OHLCV price data and signal series from LightGBMSignalModel.
 """
 
-import random
-from datetime import datetime, timedelta
-from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
-import json
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
+import pandas as pd
+import numpy as np
+
 
 @dataclass
-class Signal:
-    stock_code: str
-    signal_type: str  # BUY, SELL, HOLD
-    confidence: float
-    entry_price: float
-    target_price: float
-    stop_loss: float
-    generated_date: datetime
-    sector: str
+class BacktestResult:
+    total_return_pct: float
+    sharpe_ratio: float
+    max_drawdown_pct: float
+    win_rate_pct: float
+    total_trades: int
+    annualised_return_pct: float
+    equity_curve: pd.Series
+    monthly_returns: pd.Series
+    trade_log: pd.DataFrame
 
-@dataclass
-class Trade:
-    stock_code: str
-    entry_price: float
-    exit_price: float
-    signal_type: str
-    confidence: float
-    entry_date: datetime
-    exit_date: datetime
-    profit_loss: float
-    return_pct: float
-    sector: str
-    holding_days: int
 
 class BacktestingEngine:
-    def __init__(self):
-        self.trades: List[Trade] = []
-        self.historical_signals: List[Signal] = []
-        self._generate_historical_signals()
+    """
+    Vectorbt-based backtesting engine with pure-Python fallback.
 
-    def _generate_historical_signals(self):
-        """Generate 2 years of historical signals for backtesting"""
-        from indonesian_stocks_data import indonesian_data
+    IDX transaction costs: buy 0.15%, sell 0.25%.
+    """
 
-        # Indonesian stocks for signal generation
-        stocks = indonesian_data.get_all_stocks()
+    BUY_FEE = 0.0015
+    SELL_FEE = 0.0025
+    SLIPPAGE = 0.001
 
-        # Generate signals for the past 2 years
-        end_date = datetime.now()
-        start_date = end_date - timedelta(days=730)
+    def __init__(self, initial_capital: float = 100_000_000.0):
+        """
+        Args:
+            initial_capital: Starting capital in IDR. Default 100 million IDR.
+        """
+        self.initial_capital = initial_capital
 
-        current_date = start_date
-        while current_date <= end_date:
-            # Generate 5-15 signals per day (trading days only)
-            if current_date.weekday() < 5:  # Monday to Friday
-                num_signals = random.randint(5, 15)
-                selected_stocks = random.sample(stocks, min(num_signals, len(stocks)))
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
 
-                for stock in selected_stocks:
-                    signal_type = random.choices(
-                        ["BUY", "SELL", "HOLD"],
-                        weights=[45, 25, 30]  # More BUY signals (bullish bias)
-                    )[0]
+    def run(
+        self,
+        prices: pd.DataFrame,
+        signals: pd.Series,
+        confidence: Optional[pd.Series] = None,
+        confidence_threshold: float = 0.6,
+    ) -> BacktestResult:
+        """
+        Run a backtest.
 
-                    # Confidence based on signal type and market conditions
-                    if signal_type == "BUY":
-                        confidence = random.uniform(0.65, 0.95)
-                    elif signal_type == "SELL":
-                        confidence = random.uniform(0.60, 0.90)
-                    else:  # HOLD
-                        confidence = random.uniform(0.55, 0.85)
+        Args:
+            prices: OHLCV DataFrame with DatetimeIndex. Must have a 'close' column
+                    (case-insensitive). If not present, the first numeric column is used.
+            signals: Float series indexed like prices. +1.0=BUY, -1.0=EXIT, 0.0=HOLD.
+            confidence: Optional bet-size scores from MetaLabeler. Signals below
+                        confidence_threshold are suppressed.
+            confidence_threshold: Minimum confidence to act on a signal (default 0.6).
 
-                    # Get price for this date (simulated historical price)
-                    base_price = stock["price"]
-                    # Simulate price movement over time
-                    days_ago = (end_date - current_date).days
-                    price_factor = 1 - (days_ago * 0.0003) + random.uniform(-0.1, 0.1)
-                    entry_price = base_price * price_factor
+        Returns:
+            BacktestResult dataclass.
+        """
+        close = self._extract_close(prices)
+        signals = signals.reindex(close.index).fillna(0.0)
 
-                    # Calculate target and stop loss
-                    if signal_type == "BUY":
-                        target_price = entry_price * random.uniform(1.08, 1.25)
-                        stop_loss = entry_price * random.uniform(0.92, 0.96)
-                    elif signal_type == "SELL":
-                        target_price = entry_price * random.uniform(0.75, 0.92)
-                        stop_loss = entry_price * random.uniform(1.04, 1.08)
-                    else:  # HOLD
-                        target_price = entry_price * random.uniform(0.98, 1.02)
-                        stop_loss = entry_price * random.uniform(0.95, 1.05)
+        if confidence is not None:
+            confidence = confidence.reindex(close.index).fillna(0.0)
+            mask = confidence < confidence_threshold
+            signals = signals.copy()
+            signals[mask] = 0.0
 
-                    signal = Signal(
-                        stock_code=stock["code"],
-                        signal_type=signal_type,
-                        confidence=round(confidence, 2),
-                        entry_price=round(entry_price),
-                        target_price=round(target_price),
-                        stop_loss=round(stop_loss),
-                        generated_date=current_date,
-                        sector=stock["sector"]
-                    )
+        try:
+            import vectorbt as vbt  # noqa: F401
+            return self._vectorbt_backtest(close, signals)
+        except ImportError:
+            return self._simple_backtest(close, signals)
 
-                    self.historical_signals.append(signal)
+    def to_api_dict(self, result: BacktestResult) -> Dict:
+        """
+        Serialise a BacktestResult to a JSON-safe dict for API responses.
 
-            current_date += timedelta(days=1)
-
-    def _simulate_trade_outcome(self, signal: Signal) -> Optional[Trade]:
-        """Simulate trade outcome based on signal and confidence"""
-
-        # Higher confidence = higher success probability
-        success_probability = 0.4 + (signal.confidence * 0.5)  # 40-90% success rate
-
-        # Sector-based success modifiers
-        sector_modifiers = {
-            "Banking": 1.1,
-            "Consumer Goods": 1.05,
-            "Telecommunications": 1.0,
-            "Mining": 0.9,
-            "Property": 0.85,
-            "Construction": 0.88,
-            "Energy": 0.92
+        Returns dict with keys:
+            overview, monthly_performance, best_trades, worst_trades
+        """
+        overview = {
+            "total_return_pct": round(result.total_return_pct, 2),
+            "sharpe_ratio": round(result.sharpe_ratio, 3),
+            "max_drawdown_pct": round(result.max_drawdown_pct, 2),
+            "win_rate_pct": round(result.win_rate_pct, 1),
+            "total_trades": result.total_trades,
+            "annualised_return_pct": round(result.annualised_return_pct, 2),
         }
 
-        success_probability *= sector_modifiers.get(signal.sector, 1.0)
-        success_probability = min(success_probability, 0.95)  # Cap at 95%
+        monthly_performance = [
+            {"month": str(dt)[:7], "return_pct": round(float(v) * 100, 2)}
+            for dt, v in result.monthly_returns.items()
+        ]
 
-        # Determine if trade was successful
-        is_successful = random.random() < success_probability
-
-        # Calculate holding period (1-30 days)
-        holding_days = random.randint(1, 30)
-        exit_date = signal.generated_date + timedelta(days=holding_days)
-
-        if signal.signal_type == "HOLD":
-            # HOLD signals have minimal returns
-            exit_price = signal.entry_price * random.uniform(0.98, 1.02)
-        elif is_successful:
-            # Successful trade - move towards target
-            if signal.signal_type == "BUY":
-                target_reach = random.uniform(0.6, 1.0)  # Reach 60-100% of target
-                exit_price = signal.entry_price + (signal.target_price - signal.entry_price) * target_reach
-            else:  # SELL
-                target_reach = random.uniform(0.6, 1.0)
-                exit_price = signal.entry_price - (signal.entry_price - signal.target_price) * target_reach
-        else:
-            # Failed trade - move towards stop loss
-            if signal.signal_type == "BUY":
-                loss_amount = random.uniform(0.3, 1.0)  # 30-100% of loss to stop
-                exit_price = signal.entry_price - (signal.entry_price - signal.stop_loss) * loss_amount
-            else:  # SELL
-                loss_amount = random.uniform(0.3, 1.0)
-                exit_price = signal.entry_price + (signal.stop_loss - signal.entry_price) * loss_amount
-
-        # Calculate P&L
-        if signal.signal_type == "BUY":
-            profit_loss = exit_price - signal.entry_price
-        else:  # SELL or HOLD
-            profit_loss = signal.entry_price - exit_price
-
-        return_pct = (profit_loss / signal.entry_price) * 100
-
-        # Convert to IDR (assuming 1000 shares per trade)
-        profit_loss_idr = profit_loss * 1000
-
-        return Trade(
-            stock_code=signal.stock_code,
-            entry_price=signal.entry_price,
-            exit_price=round(exit_price),
-            signal_type=signal.signal_type,
-            confidence=signal.confidence,
-            entry_date=signal.generated_date,
-            exit_date=exit_date,
-            profit_loss=round(profit_loss_idr),
-            return_pct=round(return_pct, 2),
-            sector=signal.sector,
-            holding_days=holding_days
-        )
-
-    def run_backtest(self) -> Dict:
-        """Run complete backtesting analysis"""
-        print(f"Running backtest on {len(self.historical_signals)} historical signals...")
-
-        # Simulate trades for all signals
-        self.trades = []
-        for signal in self.historical_signals:
-            trade = self._simulate_trade_outcome(signal)
-            if trade:
-                self.trades.append(trade)
-
-        return self.analyze_performance()
-
-    def analyze_performance(self) -> Dict:
-        """Comprehensive performance analysis"""
-        if not self.trades:
-            return {}
-
-        # Overall metrics
-        total_trades = len(self.trades)
-        winning_trades = [t for t in self.trades if t.profit_loss > 0]
-        losing_trades = [t for t in self.trades if t.profit_loss < 0]
-
-        win_rate = len(winning_trades) / total_trades * 100
-        total_profit = sum(t.profit_loss for t in self.trades)
-        avg_return = sum(t.return_pct for t in self.trades) / total_trades
-
-        # Confidence-based analysis
-        confidence_buckets = {
-            "60-70%": [t for t in self.trades if 0.6 <= t.confidence < 0.7],
-            "70-80%": [t for t in self.trades if 0.7 <= t.confidence < 0.8],
-            "80-90%": [t for t in self.trades if 0.8 <= t.confidence < 0.9],
-            "90%+": [t for t in self.trades if t.confidence >= 0.9]
-        }
-
-        confidence_analysis = {}
-        for bucket, trades in confidence_buckets.items():
-            if trades:
-                winning = [t for t in trades if t.profit_loss > 0]
-                total_profit_bucket = sum(t.profit_loss for t in trades)
-
-                confidence_analysis[bucket] = {
-                    "total_trades": len(trades),
-                    "win_rate": round(len(winning) / len(trades) * 100, 1),
-                    "total_profit": total_profit_bucket,
-                    "avg_return": round(sum(t.return_pct for t in trades) / len(trades), 2),
-                    "profit_formatted": f"Rp {total_profit_bucket/1_000_000:.2f}M" if abs(total_profit_bucket) < 1_000_000_000 else f"Rp {total_profit_bucket/1_000_000_000:.2f}B"
-                }
-
-        # Sector analysis
-        sector_trades = {}
-        for trade in self.trades:
-            if trade.sector not in sector_trades:
-                sector_trades[trade.sector] = []
-            sector_trades[trade.sector].append(trade)
-
-        sector_analysis = {}
-        for sector, trades in sector_trades.items():
-            winning = [t for t in trades if t.profit_loss > 0]
-            total_profit_sector = sum(t.profit_loss for t in trades)
-
-            sector_analysis[sector] = {
-                "total_trades": len(trades),
-                "win_rate": round(len(winning) / len(trades) * 100, 1),
-                "total_profit": total_profit_sector,
-                "avg_return": round(sum(t.return_pct for t in trades) / len(trades), 2)
-            }
-
-        # Monthly performance
-        monthly_performance = {}
-        for trade in self.trades:
-            month_key = trade.exit_date.strftime("%Y-%m")
-            if month_key not in monthly_performance:
-                monthly_performance[month_key] = []
-            monthly_performance[month_key].append(trade.profit_loss)
-
-        monthly_data = []
-        for month, profits in sorted(monthly_performance.items()):
-            monthly_data.append({
-                "month": month,
-                "profit": sum(profits),
-                "trades": len(profits)
-            })
-
-        # Best and worst trades
-        best_trades = sorted(self.trades, key=lambda t: t.profit_loss, reverse=True)[:10]
-        worst_trades = sorted(self.trades, key=lambda t: t.profit_loss)[:10]
+        best_trades: List[Dict] = []
+        worst_trades: List[Dict] = []
+        if not result.trade_log.empty:
+            log = result.trade_log
+            best = log.nlargest(10, "return_pct") if "return_pct" in log.columns else log.head(10)
+            worst = log.nsmallest(10, "return_pct") if "return_pct" in log.columns else log.tail(10)
+            best_trades = best.to_dict(orient="records")
+            worst_trades = worst.to_dict(orient="records")
 
         return {
-            "overview": {
-                "total_trades": total_trades,
-                "win_rate": round(win_rate, 1),
-                "total_profit": total_profit,
-                "total_profit_formatted": f"Rp {total_profit/1_000_000_000:.2f}B" if abs(total_profit) >= 1_000_000_000 else f"Rp {total_profit/1_000_000:.2f}M",
-                "avg_return": round(avg_return, 2),
-                "avg_holding_days": round(sum(t.holding_days for t in self.trades) / total_trades, 1),
-                "best_trade": max(self.trades, key=lambda t: t.profit_loss).profit_loss,
-                "worst_trade": min(self.trades, key=lambda t: t.profit_loss).profit_loss,
-                "sharpe_ratio": round(avg_return / (sum((t.return_pct - avg_return)**2 for t in self.trades) / total_trades)**0.5, 2) if total_trades > 1 else 0
-            },
-            "confidence_analysis": confidence_analysis,
-            "sector_analysis": sector_analysis,
-            "monthly_performance": monthly_data,
-            "best_trades": [
-                {
-                    "stock_code": t.stock_code,
-                    "profit": t.profit_loss,
-                    "return_pct": t.return_pct,
-                    "confidence": t.confidence,
-                    "date": t.exit_date.strftime("%Y-%m-%d")
-                } for t in best_trades
-            ],
-            "worst_trades": [
-                {
-                    "stock_code": t.stock_code,
-                    "profit": t.profit_loss,
-                    "return_pct": t.return_pct,
-                    "confidence": t.confidence,
-                    "date": t.exit_date.strftime("%Y-%m-%d")
-                } for t in worst_trades
-            ]
+            "overview": overview,
+            "monthly_performance": monthly_performance,
+            "best_trades": best_trades,
+            "worst_trades": worst_trades,
         }
 
-# Global instance
-backtest_engine = BacktestingEngine()
+    # ------------------------------------------------------------------
+    # Vectorbt path
+    # ------------------------------------------------------------------
+
+    def _vectorbt_backtest(self, close: pd.Series, signals: pd.Series) -> BacktestResult:
+        import vectorbt as vbt
+
+        entries = signals == 1.0
+        exits = signals == -1.0
+
+        pf = vbt.Portfolio.from_signals(
+            close,
+            entries=entries,
+            exits=exits,
+            init_cash=self.initial_capital,
+            fees=self.BUY_FEE,
+            slippage=self.SLIPPAGE,
+            freq="D",
+        )
+
+        equity = pf.value()
+        daily_returns = equity.pct_change().dropna()
+
+        total_return_pct = float((equity.iloc[-1] / equity.iloc[0] - 1) * 100)
+        sharpe = self._sharpe(daily_returns)
+        max_dd = self._max_drawdown(equity)
+        monthly_returns = equity.resample("ME").last().pct_change().dropna()
+
+        trades_df = pf.trades.records_readable
+        total_trades = len(trades_df)
+        win_rate_pct = 0.0
+        if total_trades > 0 and "PnL" in trades_df.columns:
+            win_rate_pct = float((trades_df["PnL"] > 0).mean() * 100)
+            trades_df = trades_df.rename(columns={"PnL": "pnl"})
+            if "Return" in trades_df.columns:
+                trades_df = trades_df.rename(columns={"Return": "return_pct"})
+                trades_df["return_pct"] = trades_df["return_pct"] * 100
+
+        n_years = len(close) / 252
+        annualised = float(((1 + total_return_pct / 100) ** (1 / max(n_years, 1e-9)) - 1) * 100)
+
+        return BacktestResult(
+            total_return_pct=total_return_pct,
+            sharpe_ratio=sharpe,
+            max_drawdown_pct=max_dd,
+            win_rate_pct=win_rate_pct,
+            total_trades=total_trades,
+            annualised_return_pct=annualised,
+            equity_curve=equity,
+            monthly_returns=monthly_returns,
+            trade_log=trades_df if total_trades > 0 else pd.DataFrame(),
+        )
+
+    # ------------------------------------------------------------------
+    # Pure-Python fallback
+    # ------------------------------------------------------------------
+
+    def _simple_backtest(self, close: pd.Series, signals: pd.Series) -> BacktestResult:
+        """
+        Iterate through signals day by day. Enter on +1.0, exit on -1.0.
+        Tracks daily portfolio value = cash + shares * price.
+        """
+        cash = float(self.initial_capital)
+        shares = 0.0
+        entry_price = 0.0
+        entry_date = None
+
+        equity_values = []
+        trade_records = []
+
+        for date, price in close.items():
+            sig = float(signals.get(date, 0.0))
+            price = float(price)
+
+            if sig == 1.0 and shares == 0.0 and cash > 0:
+                # BUY: spend all cash, apply buy cost + slippage
+                effective_price = price * (1 + self.SLIPPAGE)
+                cost_per_share = effective_price * (1 + self.BUY_FEE)
+                shares = cash / cost_per_share
+                cash = 0.0
+                entry_price = price
+                entry_date = date
+
+            elif sig == -1.0 and shares > 0.0:
+                # EXIT: sell all shares, apply sell cost + slippage
+                effective_price = price * (1 - self.SLIPPAGE)
+                proceeds_per_share = effective_price * (1 - self.SELL_FEE)
+                proceeds = shares * proceeds_per_share
+                pnl = proceeds - shares * entry_price
+                return_pct = pnl / (shares * entry_price) * 100 if entry_price > 0 else 0.0
+                trade_records.append({
+                    "entry_date": entry_date,
+                    "exit_date": date,
+                    "entry_price": round(entry_price, 2),
+                    "exit_price": round(price, 2),
+                    "pnl": round(pnl, 2),
+                    "return_pct": round(return_pct, 2),
+                })
+                cash = proceeds
+                shares = 0.0
+                entry_price = 0.0
+                entry_date = None
+
+            portfolio_value = cash + shares * price
+            equity_values.append(portfolio_value)
+
+        equity = pd.Series(equity_values, index=close.index, name="equity")
+
+        # Force-close any open position at last price
+        if shares > 0.0:
+            last_price = float(close.iloc[-1])
+            proceeds = shares * last_price * (1 - self.SELL_FEE)
+            pnl = proceeds - shares * entry_price
+            return_pct = pnl / (shares * entry_price) * 100 if entry_price > 0 else 0.0
+            trade_records.append({
+                "entry_date": entry_date,
+                "exit_date": close.index[-1],
+                "entry_price": round(entry_price, 2),
+                "exit_price": round(last_price, 2),
+                "pnl": round(pnl, 2),
+                "return_pct": round(return_pct, 2),
+            })
+            equity.iloc[-1] = proceeds
+
+        if len(equity) == 0 or float(equity.iloc[0]) == 0:
+            return self._empty_result()
+
+        daily_returns = equity.pct_change().dropna()
+        total_return_pct = float((equity.iloc[-1] / equity.iloc[0] - 1) * 100)
+        sharpe = self._sharpe(daily_returns)
+        max_dd = self._max_drawdown(equity)
+        monthly_returns = equity.resample("ME").last().pct_change().dropna()
+
+        trade_log = pd.DataFrame(trade_records)
+        total_trades = len(trade_log)
+        win_rate_pct = 0.0
+        if total_trades > 0:
+            win_rate_pct = float((trade_log["pnl"] > 0).mean() * 100)
+
+        n_years = len(close) / 252
+        annualised = float(((1 + total_return_pct / 100) ** (1 / max(n_years, 1e-9)) - 1) * 100)
+
+        return BacktestResult(
+            total_return_pct=total_return_pct,
+            sharpe_ratio=sharpe,
+            max_drawdown_pct=max_dd,
+            win_rate_pct=win_rate_pct,
+            total_trades=total_trades,
+            annualised_return_pct=annualised,
+            equity_curve=equity,
+            monthly_returns=monthly_returns,
+            trade_log=trade_log,
+        )
+
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _extract_close(prices: pd.DataFrame) -> pd.Series:
+        if isinstance(prices, pd.Series):
+            return prices
+        for col in prices.columns:
+            if col.lower() == "close":
+                return prices[col]
+        numeric_cols = prices.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) > 0:
+            return prices[numeric_cols[0]]
+        raise ValueError("prices DataFrame has no numeric columns to use as close price")
+
+    @staticmethod
+    def _sharpe(daily_returns: pd.Series) -> float:
+        if daily_returns.std() == 0 or len(daily_returns) < 2:
+            return 0.0
+        return float(daily_returns.mean() / daily_returns.std() * np.sqrt(252))
+
+    @staticmethod
+    def _max_drawdown(equity: pd.Series) -> float:
+        dd = (equity - equity.cummax()) / equity.cummax() * 100
+        return float(dd.min())
+
+    def _empty_result(self) -> BacktestResult:
+        idx = pd.DatetimeIndex([])
+        return BacktestResult(
+            total_return_pct=0.0,
+            sharpe_ratio=0.0,
+            max_drawdown_pct=0.0,
+            win_rate_pct=0.0,
+            total_trades=0,
+            annualised_return_pct=0.0,
+            equity_curve=pd.Series(dtype=float),
+            monthly_returns=pd.Series(dtype=float),
+            trade_log=pd.DataFrame(),
+        )
