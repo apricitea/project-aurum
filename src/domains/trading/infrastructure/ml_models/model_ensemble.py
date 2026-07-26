@@ -19,6 +19,7 @@ warnings.filterwarnings('ignore')
 
 from src.domains.market_data.application.triple_barrier import TripleBarrierLabeler
 from .lightgbm_model import LightGBMSignalModel
+from .meta_labeler import MetaLabeler
 
 
 class TechnicalSignalModel:
@@ -592,6 +593,7 @@ class IDXQuantitativeModel:
         self.meta_model = EnsembleMetaModel(
             self.config.get('meta', {})
         )
+        self.meta_labeler = MetaLabeler(self.config.get('meta_labeler', None))
 
         self.is_trained = False
         self.training_metrics = {}
@@ -615,6 +617,13 @@ class IDXQuantitativeModel:
         print("Training sentiment momentum model...")
         sent_metrics = self.sentiment_model.train(data)
 
+        # Train MetaLabeler using primary model's in-sample predictions
+        X_tech, feat_names = self.technical_model.prepare_features(data)
+        X_tech_df = pd.DataFrame(X_tech, columns=feat_names)
+        primary_preds_train, _ = self.technical_model.predict(data)
+        actual_labels_train = self.technical_model.create_targets(data)
+        meta_labeler_metrics = self.meta_labeler.fit(X_tech_df, primary_preds_train, actual_labels_train)
+
         print("Training ensemble meta-model...")
         # Generate predictions from specialized models for meta-training
         tech_pred, tech_prob = self.technical_model.predict(data)
@@ -636,6 +645,7 @@ class IDXQuantitativeModel:
             'sentiment': sent_metrics,
             'meta': meta_metrics
         }
+        self.training_metrics['meta_labeler'] = meta_labeler_metrics
 
         return self.training_metrics
 
@@ -654,6 +664,12 @@ class IDXQuantitativeModel:
 
         # Generate predictions from specialized models
         tech_pred, tech_prob = self.technical_model.predict(data)
+        X_tech, feat_names = self.technical_model.prepare_features(data)
+        X_tech_df = pd.DataFrame(X_tech, columns=feat_names)
+        if self.meta_labeler.is_trained:
+            bet_sizes = self.meta_labeler.predict_bet_size(X_tech_df)
+        else:
+            bet_sizes = np.ones(len(data))
         fund_pred = self.fundamental_model.predict(data)
         sent_pred, sent_prob = self.sentiment_model.predict(data)
 
@@ -669,7 +685,8 @@ class IDXQuantitativeModel:
             'fundamental_score': fund_pred,
             'sentiment_class': sent_pred,
             'sentiment_prob': sent_prob,
-            'ensemble_score': ensemble_pred
+            'ensemble_score': ensemble_pred,
+            'bet_sizes': bet_sizes
         }
 
     def get_feature_importance(self) -> Dict[str, pd.DataFrame]:
@@ -695,6 +712,7 @@ class IDXQuantitativeModel:
             'fundamental': self.fundamental_model,
             'sentiment': self.sentiment_model,
             'meta': self.meta_model,
+            'meta_labeler': self.meta_labeler,
             'config': self.config,
             'training_metrics': self.training_metrics
         }
@@ -710,6 +728,7 @@ class IDXQuantitativeModel:
         instance.fundamental_model = model_dict['fundamental']
         instance.sentiment_model = model_dict['sentiment']
         instance.meta_model = model_dict['meta']
+        instance.meta_labeler = model_dict.get('meta_labeler', MetaLabeler())
         instance.training_metrics = model_dict['training_metrics']
         instance.is_trained = True
 
