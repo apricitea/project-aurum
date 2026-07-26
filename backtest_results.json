@@ -1,0 +1,366 @@
+{
+  "summary": {
+    "n_tickers": 16,
+    "avg_sharpe": -0.04,
+    "median_sharpe": 0.0,
+    "avg_return_pct": -2.01,
+    "avg_win_rate_pct": 31.14,
+    "avg_max_drawdown_pct": 18.44,
+    "best_ticker": "GGRM.JK",
+    "worst_ticker": "JSMR.JK"
+  },
+  "per_ticker": [
+    {
+      "ticker": "BBCA.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.3277807592923872,
+        "oos_accuracy_std": 0.17900651211957247,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": -4.71,
+        "sharpe_ratio": -0.2,
+        "win_rate_pct": 0.0,
+        "max_drawdown_pct": 12.57,
+        "total_trades": 2,
+        "annualised_return_pct": -4.1
+      }
+    },
+    {
+      "ticker": "BMRI.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.267602862254025,
+        "oos_accuracy_std": 0.19395937117601036,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": -11.84,
+        "sharpe_ratio": -0.25,
+        "win_rate_pct": 60.0,
+        "max_drawdown_pct": 32.09,
+        "total_trades": 5,
+        "annualised_return_pct": -10.37
+      }
+    },
+    {
+      "ticker": "BBRI.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.44569966209501094,
+        "oos_accuracy_std": 0.133272311052675,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": -4.49,
+        "sharpe_ratio": -0.11,
+        "win_rate_pct": 50.0,
+        "max_drawdown_pct": 17.65,
+        "total_trades": 2,
+        "annualised_return_pct": -3.91
+      }
+    },
+    {
+      "ticker": "BBNI.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.39383422778771615,
+        "oos_accuracy_std": 0.176787982105545,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": 10.22,
+        "sharpe_ratio": 0.43,
+        "win_rate_pct": 50.0,
+        "max_drawdown_pct": 22.34,
+        "total_trades": 2,
+        "annualised_return_pct": 8.82
+      }
+    },
+    {
+      "ticker": "TLKM.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.37421089246670647,
+        "oos_accuracy_std": 0.1457057205803619,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": -15.33,
+        "sharpe_ratio": -0.53,
+        "win_rate_pct": 0.0,
+        "max_drawdown_pct": 20.18,
+        "total_trades": 2,
+        "annualised_return_pct": -13.46
+      }
+    },
+    {
+      "ticker": "ASII.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.3826038560922282,
+        "oos_accuracy_std": 0.13947258611542507,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": 0.0,
+        "sharpe_ratio": 0.0,
+        "win_rate_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "total_trades": 0,
+        "annualised_return_pct": 0.0
+      }
+    },
+    {
+      "ticker": "UNVR.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.3339624329159213,
+        "oos_accuracy_std": 0.17797864817182893,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": 0.0,
+        "sharpe_ratio": 0.0,
+        "win_rate_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "total_trades": 0,
+        "annualised_return_pct": 0.0
+      }
+    },
+    {
+      "ticker": "INDF.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.44516696481812756,
+        "oos_accuracy_std": 0.25573933005821997,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": 0.0,
+        "sharpe_ratio": 0.0,
+        "win_rate_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "total_trades": 0,
+        "annualised_return_pct": 0.0
+      }
+    },
+    {
+      "ticker": "KLBF.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.26815742397137743,
+        "oos_accuracy_std": 0.1049260965264985,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": -2.77,
+        "sharpe_ratio": -0.12,
+        "win_rate_pct": 66.67,
+        "max_drawdown_pct": 14.85,
+        "total_trades": 3,
+        "annualised_return_pct": -2.41
+      }
+    },
+    {
+      "ticker": "ADRO.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.3131922083084874,
+        "oos_accuracy_std": 0.1007211795260348,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": -11.07,
+        "sharpe_ratio": 0.04,
+        "win_rate_pct": 50.0,
+        "max_drawdown_pct": 37.79,
+        "total_trades": 2,
+        "annualised_return_pct": -9.69
+      }
+    },
+    {
+      "ticker": "ANTM.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.404816139932419,
+        "oos_accuracy_std": 0.17867475356638945,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": 0.0,
+        "sharpe_ratio": 0.0,
+        "win_rate_pct": 0.0,
+        "max_drawdown_pct": 0.0,
+        "total_trades": 0,
+        "annualised_return_pct": 0.0
+      }
+    },
+    {
+      "ticker": "PTBA.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.41414728682170543,
+        "oos_accuracy_std": 0.2050541620379725,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": 1.96,
+        "sharpe_ratio": 0.18,
+        "win_rate_pct": 33.33,
+        "max_drawdown_pct": 16.77,
+        "total_trades": 3,
+        "annualised_return_pct": 1.7
+      }
+    },
+    {
+      "ticker": "GGRM.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.44840190816935,
+        "oos_accuracy_std": 0.19927187805128402,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": 22.97,
+        "sharpe_ratio": 0.68,
+        "win_rate_pct": 77.78,
+        "max_drawdown_pct": 36.87,
+        "total_trades": 9,
+        "annualised_return_pct": 19.68
+      }
+    },
+    {
+      "ticker": "HMSP.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.5056450009938381,
+        "oos_accuracy_std": 0.25832901914253587,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": 21.54,
+        "sharpe_ratio": 0.6,
+        "win_rate_pct": 57.14,
+        "max_drawdown_pct": 22.86,
+        "total_trades": 14,
+        "annualised_return_pct": 18.47
+      }
+    },
+    {
+      "ticker": "SMGR.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.42124826078314453,
+        "oos_accuracy_std": 0.20568929378080783,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": -24.93,
+        "sharpe_ratio": -0.42,
+        "win_rate_pct": 33.33,
+        "max_drawdown_pct": 43.36,
+        "total_trades": 3,
+        "annualised_return_pct": -22.05
+      }
+    },
+    {
+      "ticker": "JSMR.JK",
+      "bars_total": 1447,
+      "bars_train": 1157,
+      "bars_test": 290,
+      "train_metrics": {
+        "n_folds": 5.0,
+        "oos_accuracy_mean": 0.2859988073941563,
+        "oos_accuracy_std": 0.11776993784522281,
+        "training_accuracy": 1.0,
+        "n_features": 57.0,
+        "n_samples": 1142.0
+      },
+      "backtest": {
+        "total_return_pct": -13.78,
+        "sharpe_ratio": -1.01,
+        "win_rate_pct": 20.0,
+        "max_drawdown_pct": 17.68,
+        "total_trades": 5,
+        "annualised_return_pct": -12.09
+      }
+    }
+  ]
+}
