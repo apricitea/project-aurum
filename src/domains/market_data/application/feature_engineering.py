@@ -82,7 +82,7 @@ class IDXFeatureEngineer:
         """Add price-based technical features"""
 
         # Returns at multiple horizons
-        for period in [1, 3, 5, 10, 20]:
+        for period in [1, 3, 5, 10, 20, 60]:
             df[f'return_{period}d'] = df['close'].pct_change(period)
 
         # Moving averages and deviations
@@ -94,6 +94,7 @@ class IDXFeatureEngineer:
         # Price momentum and mean reversion signals
         df['price_momentum_5d'] = (df['close'] / df['close'].shift(5) - 1)
         df['price_momentum_20d'] = (df['close'] / df['close'].shift(20) - 1)
+        df['price_momentum_60d'] = (df['close'] / df['close'].shift(60) - 1)
 
         # Bollinger Bands (adjusted for IDX volatility)
         bb_period = 20
