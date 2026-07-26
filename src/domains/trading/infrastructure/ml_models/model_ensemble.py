@@ -350,9 +350,9 @@ class SentimentMomentumModel:
         forward_momentum = (data['close'].shift(-horizon) / data['close'] - 1)
 
         # Create momentum-based targets
-        targets = pd.cut(forward_momentum, bins=3, labels=['Weak', 'Neutral', 'Strong'])
+        bins = pd.cut(forward_momentum, bins=3, labels=[0, 1, 2])
 
-        return targets.values
+        return bins.to_numpy(dtype=float)
 
     def train(self, data: pd.DataFrame, target_horizon: int = 10) -> Dict[str, float]:
         """
@@ -480,9 +480,10 @@ class EnsembleMetaModel:
 
         # Model agreement features
         if technical_pred.ndim > 1 and sentiment_pred.ndim > 1:
-            ensemble_features.append(
-                np.corrcoef(technical_pred.T, sentiment_pred.T).diagonal()
-            )
+            # Agreement: both models predict the same highest-confidence class
+            tech_class = np.argmax(technical_pred, axis=1)
+            sent_class = np.argmax(sentiment_pred, axis=1)
+            ensemble_features.append((tech_class == sent_class).astype(float))
 
         # Additional market features if provided
         if market_features is not None:
