@@ -27,6 +27,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.domains.market_data.application.feature_engineering import IDXFeatureEngineer
 from src.domains.trading.infrastructure.ml_models.lightgbm_model import LightGBMSignalModel
 from src.domains.trading.infrastructure.ml_models.meta_labeler import MetaLabeler
+from src.domains.trading.infrastructure.ml_models.walk_forward import WalkForwardValidator
 from src.domains.analytics.application.backtesting_engine import BacktestingEngine
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
@@ -91,24 +92,59 @@ def run_ticker(
         train_metrics.get("n_features", 0),
     )
 
-    # Train MetaLabeler on training data
+    # Train MetaLabeler on OOS predictions from walk-forward folds.
+    # Using in-sample predictions would make meta_y all-1 (model overfit on train),
+    # rendering the MetaLabeler degenerate. OOS predictions give real signal quality.
     meta = MetaLabeler()
-    X_train, feat_names = model.prepare_features(train_data)
-    X_train_df = pd.DataFrame(X_train, columns=feat_names)
-    primary_preds_train, _ = model.predict(train_data)
-    actual_labels_train = model.create_targets(train_data)
-    meta.fit(X_train_df, primary_preds_train, actual_labels_train)
+    feat_names = model.feature_names
+    wfv = WalkForwardValidator(train_days=252, test_days=63, embargo_days=5)
+    folds = wfv.get_folds(train_data.index)
+    oos_X_rows, oos_preds, oos_actual = [], [], []
+    for fold in folds:
+        fmask_tr = (train_data.index >= fold.train_start) & (train_data.index <= fold.train_end)
+        fmask_te = (train_data.index >= fold.test_start) & (train_data.index <= fold.test_end)
+        if fmask_tr.sum() < 30 or fmask_te.sum() < 5:
+            continue
+        fold_model = LightGBMSignalModel()
+        try:
+            fold_model.train(train_data[fmask_tr], walk_forward=False)
+            fp, _ = fold_model.predict(train_data[fmask_te])
+            fa = fold_model.create_targets(train_data[fmask_te])
+            fX, _ = fold_model.prepare_features(train_data[fmask_te])
+            oos_X_rows.append(fX)
+            oos_preds.append(fp)
+            oos_actual.append(fa)
+        except Exception as e:
+            logger.debug("Fold MetaLabeler training failed: %s", e)
+
+    if oos_X_rows:
+        oos_X = np.vstack(oos_X_rows)
+        oos_X_df = pd.DataFrame(oos_X, columns=feat_names)
+        oos_p = np.concatenate(oos_preds)
+        oos_a = np.concatenate(oos_actual)
+        # Only train if we have both classes (some wrong predictions)
+        valid = ~np.isnan(oos_a)
+        meta_y = (oos_p[valid] == oos_a[valid]).astype(int)
+        if len(np.unique(meta_y)) >= 2:
+            meta.fit(oos_X_df.iloc[valid], oos_p[valid], oos_a[valid])
+        else:
+            logger.info("%s: MetaLabeler skipped (single class in OOS — model too accurate or too few folds)", ticker)
+    else:
+        logger.info("%s: MetaLabeler skipped (no OOS folds)", ticker)
 
     # Generate signals on test data
     test_preds, _ = model.predict(test_data)
-    X_test, _ = model.prepare_features(test_data)
-    X_test_df = pd.DataFrame(X_test, columns=feat_names)
-    bet_sizes = meta.predict_bet_size(X_test_df)
-
     signals = pd.Series(0.0, index=test_data.index)
     signals[test_preds == 1.0] = 1.0
     signals[test_preds == -1.0] = -1.0
-    confidence = pd.Series(bet_sizes, index=test_data.index)
+
+    # Apply MetaLabeler confidence filter only if trained
+    confidence: pd.Series | None = None
+    if meta.is_trained:
+        X_test, _ = model.prepare_features(test_data)
+        X_test_df = pd.DataFrame(X_test, columns=feat_names)
+        bet_sizes = meta.predict_bet_size(X_test_df)
+        confidence = pd.Series(bet_sizes, index=test_data.index)
 
     # Backtest
     engine = BacktestingEngine()
