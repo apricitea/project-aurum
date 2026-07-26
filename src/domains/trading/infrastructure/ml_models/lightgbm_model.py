@@ -57,6 +57,9 @@ class LightGBMSignalModel:
             "colsample_bytree": 0.8,
             "reg_alpha": 0.1,
             "reg_lambda": 1.0,
+            # Balance classes: triple-barrier labels skew toward 0 (HOLD/time-exit),
+            # causing the model to predict all-HOLD and execute zero trades.
+            "class_weight": "balanced",
             "random_state": 42,
             "n_jobs": -1,
             "verbose": -1,
