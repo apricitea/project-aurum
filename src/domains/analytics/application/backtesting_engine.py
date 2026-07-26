@@ -80,6 +80,16 @@ class BacktestingEngine:
         except ImportError:
             return self._simple_backtest(close, signals)
 
+    @staticmethod
+    def _safe_float(v, ndigits: int = 2) -> float:
+        try:
+            f = float(v)
+        except (TypeError, ValueError):
+            return 0.0
+        if not np.isfinite(f):
+            return 0.0
+        return round(f, ndigits)
+
     def to_api_dict(self, result: BacktestResult) -> Dict:
         """
         Serialise a BacktestResult to a JSON-safe dict for API responses.
@@ -87,13 +97,14 @@ class BacktestingEngine:
         Returns dict with keys:
             overview, monthly_performance, best_trades, worst_trades
         """
+        sf = self._safe_float
         overview = {
-            "total_return_pct": round(result.total_return_pct, 2),
-            "sharpe_ratio": round(result.sharpe_ratio, 3),
-            "max_drawdown_pct": round(result.max_drawdown_pct, 2),
-            "win_rate_pct": round(result.win_rate_pct, 1),
+            "total_return_pct": sf(result.total_return_pct, 2),
+            "sharpe_ratio": sf(result.sharpe_ratio, 3),
+            "max_drawdown_pct": sf(result.max_drawdown_pct, 2),
+            "win_rate_pct": sf(result.win_rate_pct, 1),
             "total_trades": result.total_trades,
-            "annualised_return_pct": round(result.annualised_return_pct, 2),
+            "annualised_return_pct": sf(result.annualised_return_pct, 2),
         }
 
         monthly_performance = [
@@ -132,7 +143,7 @@ class BacktestingEngine:
             entries=entries,
             exits=exits,
             init_cash=self.initial_capital,
-            fees=self.BUY_FEE,
+            fees=(self.BUY_FEE, self.SELL_FEE),
             slippage=self.SLIPPAGE,
             freq="D",
         )
@@ -228,7 +239,8 @@ class BacktestingEngine:
         # Force-close any open position at last price
         if shares > 0.0:
             last_price = float(close.iloc[-1])
-            proceeds = shares * last_price * (1 - self.SELL_FEE)
+            effective_price = last_price * (1 - self.SLIPPAGE)
+            proceeds = shares * effective_price * (1 - self.SELL_FEE)
             pnl = proceeds - shares * entry_price
             return_pct = pnl / (shares * entry_price) * 100 if entry_price > 0 else 0.0
             trade_records.append({
@@ -289,14 +301,14 @@ class BacktestingEngine:
 
     @staticmethod
     def _sharpe(daily_returns: pd.Series) -> float:
-        if daily_returns.std() == 0 or len(daily_returns) < 2:
+        if len(daily_returns) < 2 or daily_returns.std() < 1e-10:
             return 0.0
         return float(daily_returns.mean() / daily_returns.std() * np.sqrt(252))
 
     @staticmethod
     def _max_drawdown(equity: pd.Series) -> float:
         dd = (equity - equity.cummax()) / equity.cummax() * 100
-        return float(dd.min())
+        return float(abs(dd.min()))
 
     def _empty_result(self) -> BacktestResult:
         idx = pd.DatetimeIndex([])
