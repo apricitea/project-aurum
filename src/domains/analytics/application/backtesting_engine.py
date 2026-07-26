@@ -138,12 +138,14 @@ class BacktestingEngine:
         entries = signals == 1.0
         exits = signals == -1.0
 
+        # Use average fee as scalar; vectorbt does not accept asymmetric fee tuples
+        avg_fee = (self.BUY_FEE + self.SELL_FEE) / 2
         pf = vbt.Portfolio.from_signals(
             close,
             entries=entries,
             exits=exits,
             init_cash=self.initial_capital,
-            fees=(self.BUY_FEE, self.SELL_FEE),
+            fees=avg_fee,
             slippage=self.SLIPPAGE,
             freq="D",
         )
