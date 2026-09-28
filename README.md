@@ -8,21 +8,39 @@ Quantitative trading system for the Indonesian Stock Exchange (IDX). Ensemble ML
 
 ## Evaluation status
 
-Research prototype; performance claims require a reproducible run manifest.
-The checked-in [`backtest_results.json`](backtest_results.json) contains these aggregate **per-ticker** results:
+A corrected, reproducible evaluation lives in [`research/`](research/) — see
+[`research/README.md`](research/README.md) for the methodology, the defects it fixes in
+the earlier pipeline, and the full results.
 
-| Artifact field | Value |
-|---|---|
-| Tickers evaluated | 16 |
-| Mean ticker return | -2.01% |
-| Mean ticker Sharpe | -0.04 |
-| Mean ticker win rate | 31.14% |
-| Mean ticker maximum drawdown magnitude | 18.44% |
+Summary — 16 IDX large caps, equal weight, 2025 out-of-sample window, IDX costs included,
+signal at close of bar *t* executed from bar *t+1*:
 
-These are arithmetic summaries across tickers, not portfolio performance or live returns.
-The earlier 195.6% return / 2.70 Sharpe / 509-trade claim has no linked run artifact in this checkout and is withdrawn from the project summary pending reconciliation. Different runs and aggregation methods cannot be compared directly.
+| Configuration | Return | Sharpe | Max DD | Trades |
+|---|---|---|---|---|
+| Signal model + meta-labeler filter | **+0.12%** | 0.05 | −3.28% | 108 |
+| Signal model, no meta-labeler filter | **+7.62%** | 0.88 | −7.68% | 135 |
+| Signal model, technical features only | **+4.73%** | 1.38 | −1.67% | 70 |
+| Buy & hold, equal weight | **+14.17%** | 0.74 | −18.54% | — |
+| IHSG (^JKSE) | **+20.71%** | 1.12 | −17.76% | — |
 
-Before reporting performance, preserve the input data hashes, source/licensing information, code revision, environment lockfile, exact train/test dates, split and purge rules, seeds, model configuration, trade ledger, cost assumptions, and benchmark results with one run ID. Walk-forward validation and an embargo alone do not establish absence of leakage.
+Walk-forward accuracy inside the training period (purged and embargoed) is 0.341–0.361
+against a majority-class baseline of 0.532 on 3-class labels (+1 / 0 / −1).
+
+**Conclusion: the model does not beat buy-and-hold, and the earlier claim of 195.6%
+return / 2.70 Sharpe is not reproducible.** The four defects that produced it — the final
+model trained on rows inside the test window, early stopping performed on the fold's own
+test set, a scaler fitted on the whole series before any split, and a 5-day calendar
+embargo shorter than the 10-bar label horizon with no purge — are documented in
+`research/README.md`. The paper's meta-labeler claim is also contradicted: the filter
+reduced return from +7.62% to +0.12% while reducing drawdown from −7.68% to −3.28%.
+
+[`backtest_results.json`](backtest_results.json) is the artifact of the superseded
+pipeline, kept for provenance only. It reports mean per-ticker return −2.01% and mean
+Sharpe −0.04 across 16 tickers, and per-ticker means are not a portfolio result.
+
+![2025 out-of-sample: signal model vs buy-and-hold vs IHSG](research/out/20260928T102521Z-f552679/fig_equity_curve.png)
+
+![Walk-forward accuracy against the majority-class baseline, per ticker](research/out/20260928T102521Z-f552679/fig_fold_accuracy.png)
 
 ---
 
