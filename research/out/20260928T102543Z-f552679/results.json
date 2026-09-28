@@ -1,0 +1,2096 @@
+{
+  "summary": {
+    "n_tickers": 16,
+    "skipped": [],
+    "portfolio": {
+      "strategy": {
+        "total_return_pct": 4.73,
+        "cagr_pct": 5.08,
+        "sharpe": 1.38,
+        "max_drawdown_pct": -1.67,
+        "trades": 70,
+        "win_rate_pct": 51.43
+      },
+      "buy_hold": {
+        "total_return_pct": 14.17,
+        "cagr_pct": 15.27,
+        "sharpe": 0.74,
+        "max_drawdown_pct": -18.54,
+        "trades": 0,
+        "win_rate_pct": 0.0
+      },
+      "momentum": {
+        "total_return_pct": 0.66,
+        "cagr_pct": 0.71,
+        "sharpe": 0.12,
+        "max_drawdown_pct": -11.53,
+        "trades": 0,
+        "win_rate_pct": 0.0
+      }
+    },
+    "benchmark_ihsg": {
+      "total_return_pct": 20.71,
+      "cagr_pct": 22.07,
+      "sharpe": 1.12,
+      "max_drawdown_pct": -17.76,
+      "trades": 1,
+      "win_rate_pct": 100.0
+    },
+    "mean_fold_oos_accuracy": 0.3611,
+    "mean_fold_majority_baseline": 0.5317,
+    "mean_strategy_sharpe": 0.26,
+    "mean_buy_hold_sharpe": 0.34,
+    "mean_momentum_sharpe": -0.19,
+    "total_test_trades": 70
+  },
+  "portfolio": {
+    "strategy": {
+      "total_return_pct": 4.73,
+      "cagr_pct": 5.08,
+      "sharpe": 1.38,
+      "max_drawdown_pct": -1.67,
+      "trades": 70,
+      "win_rate_pct": 51.43
+    },
+    "buy_hold": {
+      "total_return_pct": 14.17,
+      "cagr_pct": 15.27,
+      "sharpe": 0.74,
+      "max_drawdown_pct": -18.54,
+      "trades": 0,
+      "win_rate_pct": 0.0
+    },
+    "momentum": {
+      "total_return_pct": 0.66,
+      "cagr_pct": 0.71,
+      "sharpe": 0.12,
+      "max_drawdown_pct": -11.53,
+      "trades": 0,
+      "win_rate_pct": 0.0
+    }
+  },
+  "per_ticker": {
+    "BBCA.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 22,
+        "best_score": 1.0267399400910444,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.2963,
+      "fold_oos_accuracy_std": 0.0417,
+      "fold_majority_baseline_mean": 0.4233,
+      "fold_macro_f1_mean": 0.2172,
+      "label_distribution": {
+        "-1": 619,
+        "0": 430,
+        "1": 337
+      },
+      "signal_days": 0,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown_pct": 0.0,
+        "trades": 0,
+        "win_rate_pct": 0.0
+      },
+      "buy_and_hold": {
+        "total_return_pct": -16.02,
+        "cagr_pct": -17.07,
+        "sharpe": -0.5,
+        "max_drawdown_pct": -25.26,
+        "trades": 1,
+        "win_rate_pct": 0.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": -8.85,
+        "cagr_pct": -9.46,
+        "sharpe": -0.46,
+        "max_drawdown_pct": -15.46,
+        "trades": 8,
+        "win_rate_pct": 25.0
+      },
+      "shap_top15": [
+        {
+          "feature": "ma_50",
+          "mean_abs_shap": 0.072748
+        },
+        {
+          "feature": "atr",
+          "mean_abs_shap": 0.019594
+        },
+        {
+          "feature": "bb_lower",
+          "mean_abs_shap": 0.015118
+        },
+        {
+          "feature": "obv_ma",
+          "mean_abs_shap": 0.013507
+        },
+        {
+          "feature": "macd_histogram",
+          "mean_abs_shap": 0.013277
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.013069
+        },
+        {
+          "feature": "ma_5",
+          "mean_abs_shap": 0.011979
+        },
+        {
+          "feature": "vol_60d",
+          "mean_abs_shap": 0.011388
+        },
+        {
+          "feature": "vwap",
+          "mean_abs_shap": 0.009707
+        },
+        {
+          "feature": "vol_20d",
+          "mean_abs_shap": 0.008297
+        },
+        {
+          "feature": "vol_10d",
+          "mean_abs_shap": 0.008219
+        },
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.007907
+        },
+        {
+          "feature": "bb_upper",
+          "mean_abs_shap": 0.006781
+        },
+        {
+          "feature": "obv_trend",
+          "mean_abs_shap": 0.005768
+        },
+        {
+          "feature": "return_1d",
+          "mean_abs_shap": 0.005293
+        }
+      ]
+    },
+    "BMRI.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 5,
+        "best_score": 1.0950738135025608,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.3228,
+      "fold_oos_accuracy_std": 0.0981,
+      "fold_majority_baseline_mean": 0.4762,
+      "fold_macro_f1_mean": 0.2572,
+      "label_distribution": {
+        "-1": 584,
+        "0": 478,
+        "1": 324
+      },
+      "signal_days": 6,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": 3.04,
+        "cagr_pct": 3.26,
+        "sharpe": 0.49,
+        "max_drawdown_pct": -4.46,
+        "trades": 3,
+        "win_rate_pct": 66.67
+      },
+      "buy_and_hold": {
+        "total_return_pct": -4.66,
+        "cagr_pct": -4.99,
+        "sharpe": 0.04,
+        "max_drawdown_pct": -28.58,
+        "trades": 1,
+        "win_rate_pct": 0.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": 3.3,
+        "cagr_pct": 3.54,
+        "sharpe": 0.27,
+        "max_drawdown_pct": -18.88,
+        "trades": 10,
+        "win_rate_pct": 30.0
+      },
+      "shap_top15": [
+        {
+          "feature": "ma_50",
+          "mean_abs_shap": 0.012217
+        },
+        {
+          "feature": "obv_trend",
+          "mean_abs_shap": 0.00791
+        },
+        {
+          "feature": "atr",
+          "mean_abs_shap": 0.007026
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.006133
+        },
+        {
+          "feature": "bb_position",
+          "mean_abs_shap": 0.004399
+        },
+        {
+          "feature": "vol_20d",
+          "mean_abs_shap": 0.003611
+        },
+        {
+          "feature": "macd_signal",
+          "mean_abs_shap": 0.003475
+        },
+        {
+          "feature": "ma_5",
+          "mean_abs_shap": 0.003421
+        },
+        {
+          "feature": "volume_ma",
+          "mean_abs_shap": 0.003286
+        },
+        {
+          "feature": "macd",
+          "mean_abs_shap": 0.002716
+        },
+        {
+          "feature": "rsi_30",
+          "mean_abs_shap": 0.002545
+        },
+        {
+          "feature": "price_to_ma_5",
+          "mean_abs_shap": 0.002464
+        },
+        {
+          "feature": "vol_10d",
+          "mean_abs_shap": 0.00236
+        },
+        {
+          "feature": "return_10d",
+          "mean_abs_shap": 0.002323
+        },
+        {
+          "feature": "vwap",
+          "mean_abs_shap": 0.002212
+        }
+      ]
+    },
+    "BBRI.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 5,
+        "best_score": 1.079056016121779,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.3651,
+      "fold_oos_accuracy_std": 0.1495,
+      "fold_majority_baseline_mean": 0.5238,
+      "fold_macro_f1_mean": 0.2657,
+      "label_distribution": {
+        "-1": 659,
+        "0": 378,
+        "1": 349
+      },
+      "signal_days": 0,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown_pct": 0.0,
+        "trades": 0,
+        "win_rate_pct": 0.0
+      },
+      "buy_and_hold": {
+        "total_return_pct": -5.15,
+        "cagr_pct": -5.51,
+        "sharpe": 0.03,
+        "max_drawdown_pct": -21.86,
+        "trades": 1,
+        "win_rate_pct": 0.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": -23.13,
+        "cagr_pct": -24.58,
+        "sharpe": -1.11,
+        "max_drawdown_pct": -23.7,
+        "trades": 15,
+        "win_rate_pct": 20.0
+      },
+      "shap_top15": [
+        {
+          "feature": "ma_5",
+          "mean_abs_shap": 0.017713
+        },
+        {
+          "feature": "atr",
+          "mean_abs_shap": 0.012038
+        },
+        {
+          "feature": "obv_ma",
+          "mean_abs_shap": 0.007044
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.006766
+        },
+        {
+          "feature": "ma_50",
+          "mean_abs_shap": 0.006322
+        },
+        {
+          "feature": "vol_10d",
+          "mean_abs_shap": 0.004636
+        },
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.004113
+        },
+        {
+          "feature": "macd_histogram",
+          "mean_abs_shap": 0.00389
+        },
+        {
+          "feature": "vol_60d",
+          "mean_abs_shap": 0.003824
+        },
+        {
+          "feature": "vol_20d",
+          "mean_abs_shap": 0.003415
+        },
+        {
+          "feature": "stoch_d",
+          "mean_abs_shap": 0.003316
+        },
+        {
+          "feature": "volume_ma",
+          "mean_abs_shap": 0.003217
+        },
+        {
+          "feature": "volume_ratio",
+          "mean_abs_shap": 0.0032
+        },
+        {
+          "feature": "bb_lower",
+          "mean_abs_shap": 0.003117
+        },
+        {
+          "feature": "ma_20",
+          "mean_abs_shap": 0.003022
+        }
+      ]
+    },
+    "BBNI.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 5,
+        "best_score": 1.0986121164898668,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.4339,
+      "fold_oos_accuracy_std": 0.1087,
+      "fold_majority_baseline_mean": 0.4603,
+      "fold_macro_f1_mean": 0.2483,
+      "label_distribution": {
+        "-1": 653,
+        "0": 368,
+        "1": 365
+      },
+      "signal_days": 6,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": 1.52,
+        "cagr_pct": 1.64,
+        "sharpe": 0.34,
+        "max_drawdown_pct": -2.67,
+        "trades": 3,
+        "win_rate_pct": 33.33
+      },
+      "buy_and_hold": {
+        "total_return_pct": 0.97,
+        "cagr_pct": 1.04,
+        "sharpe": 0.21,
+        "max_drawdown_pct": -22.34,
+        "trades": 1,
+        "win_rate_pct": 100.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": -24.83,
+        "cagr_pct": -26.36,
+        "sharpe": -1.39,
+        "max_drawdown_pct": -28.11,
+        "trades": 17,
+        "win_rate_pct": 23.53
+      },
+      "shap_top15": [
+        {
+          "feature": "atr",
+          "mean_abs_shap": 0.015401
+        },
+        {
+          "feature": "vol_5d",
+          "mean_abs_shap": 0.007973
+        },
+        {
+          "feature": "vol_60d",
+          "mean_abs_shap": 0.006495
+        },
+        {
+          "feature": "ma_50",
+          "mean_abs_shap": 0.005906
+        },
+        {
+          "feature": "rsi_14",
+          "mean_abs_shap": 0.00576
+        },
+        {
+          "feature": "vwap",
+          "mean_abs_shap": 0.004994
+        },
+        {
+          "feature": "rsi_30",
+          "mean_abs_shap": 0.004621
+        },
+        {
+          "feature": "macd_signal",
+          "mean_abs_shap": 0.004124
+        },
+        {
+          "feature": "vol_20d",
+          "mean_abs_shap": 0.003982
+        },
+        {
+          "feature": "volume_ratio",
+          "mean_abs_shap": 0.003951
+        },
+        {
+          "feature": "ma_5",
+          "mean_abs_shap": 0.003624
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.00293
+        },
+        {
+          "feature": "price_to_vwap",
+          "mean_abs_shap": 0.002895
+        },
+        {
+          "feature": "return_20d",
+          "mean_abs_shap": 0.002826
+        },
+        {
+          "feature": "volume_ma",
+          "mean_abs_shap": 0.002637
+        }
+      ]
+    },
+    "TLKM.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 1,
+        "best_score": 1.1000860881044547,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.3704,
+      "fold_oos_accuracy_std": 0.0981,
+      "fold_majority_baseline_mean": 0.5661,
+      "fold_macro_f1_mean": 0.2407,
+      "label_distribution": {
+        "-1": 612,
+        "0": 449,
+        "1": 325
+      },
+      "signal_days": 4,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": -0.16,
+        "cagr_pct": -0.18,
+        "sharpe": -0.01,
+        "max_drawdown_pct": -5.15,
+        "trades": 4,
+        "win_rate_pct": 50.0
+      },
+      "buy_and_hold": {
+        "total_return_pct": 39.23,
+        "cagr_pct": 42.61,
+        "sharpe": 1.12,
+        "max_drawdown_pct": -16.73,
+        "trades": 1,
+        "win_rate_pct": 100.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": 4.46,
+        "cagr_pct": 4.79,
+        "sharpe": 0.31,
+        "max_drawdown_pct": -15.49,
+        "trades": 11,
+        "win_rate_pct": 36.36
+      },
+      "shap_top15": [
+        {
+          "feature": "vol_10d",
+          "mean_abs_shap": 0.005267
+        },
+        {
+          "feature": "bb_upper",
+          "mean_abs_shap": 0.003696
+        },
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.003545
+        },
+        {
+          "feature": "return_60d",
+          "mean_abs_shap": 0.003122
+        },
+        {
+          "feature": "ma_20",
+          "mean_abs_shap": 0.002983
+        },
+        {
+          "feature": "return_5d",
+          "mean_abs_shap": 0.002677
+        },
+        {
+          "feature": "vol_60d",
+          "mean_abs_shap": 0.002383
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.002118
+        },
+        {
+          "feature": "bb_lower",
+          "mean_abs_shap": 0.001682
+        },
+        {
+          "feature": "volume_ma",
+          "mean_abs_shap": 0.001502
+        },
+        {
+          "feature": "atr_ratio",
+          "mean_abs_shap": 0.000803
+        },
+        {
+          "feature": "rsi_30",
+          "mean_abs_shap": 0.000655
+        },
+        {
+          "feature": "atr",
+          "mean_abs_shap": 0.000469
+        },
+        {
+          "feature": "gap",
+          "mean_abs_shap": 0.000393
+        },
+        {
+          "feature": "vol_20d",
+          "mean_abs_shap": 0.000349
+        }
+      ]
+    },
+    "ASII.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 13,
+        "best_score": 1.0941263137603923,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.2275,
+      "fold_oos_accuracy_std": 0.1445,
+      "fold_majority_baseline_mean": 0.6561,
+      "fold_macro_f1_mean": 0.1667,
+      "label_distribution": {
+        "-1": 648,
+        "0": 411,
+        "1": 327
+      },
+      "signal_days": 4,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": 0.5,
+        "cagr_pct": 0.53,
+        "sharpe": 0.17,
+        "max_drawdown_pct": -1.62,
+        "trades": 2,
+        "win_rate_pct": 50.0
+      },
+      "buy_and_hold": {
+        "total_return_pct": 46.23,
+        "cagr_pct": 50.3,
+        "sharpe": 1.51,
+        "max_drawdown_pct": -9.68,
+        "trades": 1,
+        "win_rate_pct": 100.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": -0.8,
+        "cagr_pct": -0.86,
+        "sharpe": 0.09,
+        "max_drawdown_pct": -20.17,
+        "trades": 15,
+        "win_rate_pct": 40.0
+      },
+      "shap_top15": [
+        {
+          "feature": "ma_50",
+          "mean_abs_shap": 0.029737
+        },
+        {
+          "feature": "atr",
+          "mean_abs_shap": 0.028195
+        },
+        {
+          "feature": "volume_ma",
+          "mean_abs_shap": 0.019025
+        },
+        {
+          "feature": "bb_upper",
+          "mean_abs_shap": 0.018165
+        },
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.012939
+        },
+        {
+          "feature": "stoch_k",
+          "mean_abs_shap": 0.010656
+        },
+        {
+          "feature": "rsi_30",
+          "mean_abs_shap": 0.008132
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.007755
+        },
+        {
+          "feature": "return_20d",
+          "mean_abs_shap": 0.006887
+        },
+        {
+          "feature": "market_regime",
+          "mean_abs_shap": 0.00675
+        },
+        {
+          "feature": "ma_20",
+          "mean_abs_shap": 0.006264
+        },
+        {
+          "feature": "macd_histogram",
+          "mean_abs_shap": 0.006096
+        },
+        {
+          "feature": "macd_signal",
+          "mean_abs_shap": 0.005862
+        },
+        {
+          "feature": "macd",
+          "mean_abs_shap": 0.005734
+        },
+        {
+          "feature": "vol_60d",
+          "mean_abs_shap": 0.005357
+        }
+      ]
+    },
+    "UNVR.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 1,
+        "best_score": 1.1045109527228263,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.3704,
+      "fold_oos_accuracy_std": 0.0792,
+      "fold_majority_baseline_mean": 0.5714,
+      "fold_macro_f1_mean": 0.2883,
+      "label_distribution": {
+        "-1": 686,
+        "0": 430,
+        "1": 270
+      },
+      "signal_days": 143,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": 39.76,
+        "cagr_pct": 43.19,
+        "sharpe": 1.07,
+        "max_drawdown_pct": -20.32,
+        "trades": 21,
+        "win_rate_pct": 52.38
+      },
+      "buy_and_hold": {
+        "total_return_pct": 50.85,
+        "cagr_pct": 55.41,
+        "sharpe": 1.06,
+        "max_drawdown_pct": -44.77,
+        "trades": 1,
+        "win_rate_pct": 100.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": 63.57,
+        "cagr_pct": 69.49,
+        "sharpe": 1.49,
+        "max_drawdown_pct": -13.77,
+        "trades": 9,
+        "win_rate_pct": 55.56
+      },
+      "shap_top15": [
+        {
+          "feature": "vwap",
+          "mean_abs_shap": 0.016019
+        },
+        {
+          "feature": "bb_upper",
+          "mean_abs_shap": 0.007723
+        },
+        {
+          "feature": "return_10d",
+          "mean_abs_shap": 0.004148
+        },
+        {
+          "feature": "vol_60d",
+          "mean_abs_shap": 0.003231
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.002417
+        },
+        {
+          "feature": "obv_ma",
+          "mean_abs_shap": 0.001711
+        },
+        {
+          "feature": "return_60d",
+          "mean_abs_shap": 0.001552
+        },
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.001545
+        },
+        {
+          "feature": "macd_signal",
+          "mean_abs_shap": 0.001286
+        },
+        {
+          "feature": "vol_20d",
+          "mean_abs_shap": 0.001155
+        },
+        {
+          "feature": "bb_position",
+          "mean_abs_shap": 0.001076
+        },
+        {
+          "feature": "atr",
+          "mean_abs_shap": 0.000903
+        },
+        {
+          "feature": "macd",
+          "mean_abs_shap": 0.000898
+        },
+        {
+          "feature": "rsi_30",
+          "mean_abs_shap": 0.000746
+        },
+        {
+          "feature": "return_20d",
+          "mean_abs_shap": 0.000624
+        }
+      ]
+    },
+    "INDF.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 31,
+        "best_score": 1.040624452029807,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.3439,
+      "fold_oos_accuracy_std": 0.1349,
+      "fold_majority_baseline_mean": 0.4921,
+      "fold_macro_f1_mean": 0.2958,
+      "label_distribution": {
+        "-1": 606,
+        "0": 493,
+        "1": 287
+      },
+      "signal_days": 0,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown_pct": 0.0,
+        "trades": 0,
+        "win_rate_pct": 0.0
+      },
+      "buy_and_hold": {
+        "total_return_pct": -6.3,
+        "cagr_pct": -6.74,
+        "sharpe": -0.08,
+        "max_drawdown_pct": -22.87,
+        "trades": 1,
+        "win_rate_pct": 0.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": -16.04,
+        "cagr_pct": -17.09,
+        "sharpe": -0.83,
+        "max_drawdown_pct": -19.98,
+        "trades": 12,
+        "win_rate_pct": 41.67
+      },
+      "shap_top15": [
+        {
+          "feature": "obv_ma",
+          "mean_abs_shap": 0.111583
+        },
+        {
+          "feature": "ma_50",
+          "mean_abs_shap": 0.042267
+        },
+        {
+          "feature": "atr",
+          "mean_abs_shap": 0.033212
+        },
+        {
+          "feature": "bb_lower",
+          "mean_abs_shap": 0.031443
+        },
+        {
+          "feature": "macd",
+          "mean_abs_shap": 0.027691
+        },
+        {
+          "feature": "price_to_ma_50",
+          "mean_abs_shap": 0.02396
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.022404
+        },
+        {
+          "feature": "stoch_k",
+          "mean_abs_shap": 0.020579
+        },
+        {
+          "feature": "rsi_14",
+          "mean_abs_shap": 0.016059
+        },
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.015642
+        },
+        {
+          "feature": "vol_60d",
+          "mean_abs_shap": 0.015527
+        },
+        {
+          "feature": "ma_20",
+          "mean_abs_shap": 0.014482
+        },
+        {
+          "feature": "return_60d",
+          "mean_abs_shap": 0.011145
+        },
+        {
+          "feature": "bb_upper",
+          "mean_abs_shap": 0.010853
+        },
+        {
+          "feature": "vol_20d",
+          "mean_abs_shap": 0.010385
+        }
+      ]
+    },
+    "KLBF.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 39,
+        "best_score": 1.0009647840503357,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.3968,
+      "fold_oos_accuracy_std": 0.2141,
+      "fold_majority_baseline_mean": 0.5873,
+      "fold_macro_f1_mean": 0.2202,
+      "label_distribution": {
+        "-1": 606,
+        "0": 560,
+        "1": 220
+      },
+      "signal_days": 24,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": 20.67,
+        "cagr_pct": 22.32,
+        "sharpe": 1.19,
+        "max_drawdown_pct": -9.04,
+        "trades": 9,
+        "win_rate_pct": 77.78
+      },
+      "buy_and_hold": {
+        "total_return_pct": -6.17,
+        "cagr_pct": -6.6,
+        "sharpe": 0.07,
+        "max_drawdown_pct": -34.06,
+        "trades": 1,
+        "win_rate_pct": 0.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": 12.18,
+        "cagr_pct": 13.12,
+        "sharpe": 0.55,
+        "max_drawdown_pct": -16.71,
+        "trades": 9,
+        "win_rate_pct": 44.44
+      },
+      "shap_top15": [
+        {
+          "feature": "bb_upper",
+          "mean_abs_shap": 0.073403
+        },
+        {
+          "feature": "atr",
+          "mean_abs_shap": 0.069958
+        },
+        {
+          "feature": "price_to_vwap",
+          "mean_abs_shap": 0.046271
+        },
+        {
+          "feature": "price_to_ma_5",
+          "mean_abs_shap": 0.039695
+        },
+        {
+          "feature": "ma_20",
+          "mean_abs_shap": 0.032683
+        },
+        {
+          "feature": "bb_lower",
+          "mean_abs_shap": 0.031325
+        },
+        {
+          "feature": "stoch_k",
+          "mean_abs_shap": 0.029014
+        },
+        {
+          "feature": "ma_50",
+          "mean_abs_shap": 0.024882
+        },
+        {
+          "feature": "volume_ma",
+          "mean_abs_shap": 0.024115
+        },
+        {
+          "feature": "vol_20d",
+          "mean_abs_shap": 0.022535
+        },
+        {
+          "feature": "rsi_30",
+          "mean_abs_shap": 0.02162
+        },
+        {
+          "feature": "bb_position",
+          "mean_abs_shap": 0.021154
+        },
+        {
+          "feature": "price_to_ma_20",
+          "mean_abs_shap": 0.015389
+        },
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.015281
+        },
+        {
+          "feature": "bb_middle",
+          "mean_abs_shap": 0.013446
+        }
+      ]
+    },
+    "ADRO.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 1,
+        "best_score": 1.0991636830827796,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.4392,
+      "fold_oos_accuracy_std": 0.1889,
+      "fold_majority_baseline_mean": 0.4074,
+      "fold_macro_f1_mean": 0.374,
+      "label_distribution": {
+        "-1": 562,
+        "0": 401,
+        "1": 423
+      },
+      "signal_days": 0,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown_pct": 0.0,
+        "trades": 0,
+        "win_rate_pct": 0.0
+      },
+      "buy_and_hold": {
+        "total_return_pct": -16.69,
+        "cagr_pct": -17.78,
+        "sharpe": -0.25,
+        "max_drawdown_pct": -35.08,
+        "trades": 1,
+        "win_rate_pct": 0.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": -9.02,
+        "cagr_pct": -9.64,
+        "sharpe": -0.22,
+        "max_drawdown_pct": -28.92,
+        "trades": 12,
+        "win_rate_pct": 33.33
+      },
+      "shap_top15": [
+        {
+          "feature": "ma_5",
+          "mean_abs_shap": 0.008073
+        },
+        {
+          "feature": "ma_50",
+          "mean_abs_shap": 0.005561
+        },
+        {
+          "feature": "return_20d",
+          "mean_abs_shap": 0.004277
+        },
+        {
+          "feature": "price_to_vwap",
+          "mean_abs_shap": 0.003718
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.002828
+        },
+        {
+          "feature": "rsi_14",
+          "mean_abs_shap": 0.002515
+        },
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.002427
+        },
+        {
+          "feature": "obv_trend",
+          "mean_abs_shap": 0.002112
+        },
+        {
+          "feature": "vol_20d",
+          "mean_abs_shap": 0.001754
+        },
+        {
+          "feature": "price_momentum_20d",
+          "mean_abs_shap": 0.001363
+        },
+        {
+          "feature": "vol_5d",
+          "mean_abs_shap": 0.001093
+        },
+        {
+          "feature": "macd",
+          "mean_abs_shap": 0.000933
+        },
+        {
+          "feature": "obv_ma",
+          "mean_abs_shap": 0.000914
+        },
+        {
+          "feature": "price_to_ma_50",
+          "mean_abs_shap": 0.000588
+        },
+        {
+          "feature": "volume_ratio",
+          "mean_abs_shap": 0.000556
+        }
+      ]
+    },
+    "ANTM.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 4,
+        "best_score": 1.091151345393804,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.2751,
+      "fold_oos_accuracy_std": 0.054,
+      "fold_majority_baseline_mean": 0.5503,
+      "fold_macro_f1_mean": 0.1429,
+      "label_distribution": {
+        "-1": 634,
+        "0": 347,
+        "1": 405
+      },
+      "signal_days": 0,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown_pct": 0.0,
+        "trades": 0,
+        "win_rate_pct": 0.0
+      },
+      "buy_and_hold": {
+        "total_return_pct": 123.89,
+        "cagr_pct": 137.33,
+        "sharpe": 1.9,
+        "max_drawdown_pct": -21.53,
+        "trades": 1,
+        "win_rate_pct": 100.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": 35.77,
+        "cagr_pct": 38.8,
+        "sharpe": 0.96,
+        "max_drawdown_pct": -35.69,
+        "trades": 16,
+        "win_rate_pct": 31.25
+      },
+      "shap_top15": [
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.013489
+        },
+        {
+          "feature": "vol_10d",
+          "mean_abs_shap": 0.009119
+        },
+        {
+          "feature": "vwap",
+          "mean_abs_shap": 0.00903
+        },
+        {
+          "feature": "macd_histogram",
+          "mean_abs_shap": 0.006751
+        },
+        {
+          "feature": "stoch_d",
+          "mean_abs_shap": 0.006576
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.005981
+        },
+        {
+          "feature": "obv_ma",
+          "mean_abs_shap": 0.004997
+        },
+        {
+          "feature": "bb_lower",
+          "mean_abs_shap": 0.00448
+        },
+        {
+          "feature": "vol_60d",
+          "mean_abs_shap": 0.00438
+        },
+        {
+          "feature": "volume_ma",
+          "mean_abs_shap": 0.004327
+        },
+        {
+          "feature": "ma_20",
+          "mean_abs_shap": 0.003834
+        },
+        {
+          "feature": "bb_middle",
+          "mean_abs_shap": 0.003796
+        },
+        {
+          "feature": "price_to_ma_50",
+          "mean_abs_shap": 0.003553
+        },
+        {
+          "feature": "macd_signal",
+          "mean_abs_shap": 0.002923
+        },
+        {
+          "feature": "market_regime",
+          "mean_abs_shap": 0.002895
+        }
+      ]
+    },
+    "PTBA.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 12,
+        "best_score": 1.0508833988415505,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.3386,
+      "fold_oos_accuracy_std": 0.1176,
+      "fold_majority_baseline_mean": 0.4444,
+      "fold_macro_f1_mean": 0.2343,
+      "label_distribution": {
+        "-1": 615,
+        "0": 415,
+        "1": 356
+      },
+      "signal_days": 29,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": -2.47,
+        "cagr_pct": -2.64,
+        "sharpe": -0.5,
+        "max_drawdown_pct": -4.22,
+        "trades": 3,
+        "win_rate_pct": 66.67
+      },
+      "buy_and_hold": {
+        "total_return_pct": -2.58,
+        "cagr_pct": -2.77,
+        "sharpe": -0.01,
+        "max_drawdown_pct": -19.29,
+        "trades": 1,
+        "win_rate_pct": 0.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": -15.3,
+        "cagr_pct": -16.31,
+        "sharpe": -1.37,
+        "max_drawdown_pct": -17.74,
+        "trades": 12,
+        "win_rate_pct": 16.67
+      },
+      "shap_top15": [
+        {
+          "feature": "obv_ma",
+          "mean_abs_shap": 0.050959
+        },
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.043642
+        },
+        {
+          "feature": "bb_upper",
+          "mean_abs_shap": 0.013395
+        },
+        {
+          "feature": "ma_50",
+          "mean_abs_shap": 0.011908
+        },
+        {
+          "feature": "volume_ma",
+          "mean_abs_shap": 0.010014
+        },
+        {
+          "feature": "bb_middle",
+          "mean_abs_shap": 0.009205
+        },
+        {
+          "feature": "bb_lower",
+          "mean_abs_shap": 0.007663
+        },
+        {
+          "feature": "vol_20d",
+          "mean_abs_shap": 0.007172
+        },
+        {
+          "feature": "obv_trend",
+          "mean_abs_shap": 0.006685
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.006122
+        },
+        {
+          "feature": "vol_60d",
+          "mean_abs_shap": 0.005697
+        },
+        {
+          "feature": "stoch_d",
+          "mean_abs_shap": 0.004764
+        },
+        {
+          "feature": "stoch_k",
+          "mean_abs_shap": 0.00456
+        },
+        {
+          "feature": "price_to_vwap",
+          "mean_abs_shap": 0.004378
+        },
+        {
+          "feature": "momentum_zscore_20d",
+          "mean_abs_shap": 0.00396
+        }
+      ]
+    },
+    "GGRM.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 28,
+        "best_score": 1.0030890037222204,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.2963,
+      "fold_oos_accuracy_std": 0.1349,
+      "fold_majority_baseline_mean": 0.6085,
+      "fold_macro_f1_mean": 0.2175,
+      "label_distribution": {
+        "-1": 725,
+        "0": 345,
+        "1": 316
+      },
+      "signal_days": 0,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": 0.0,
+        "cagr_pct": 0.0,
+        "sharpe": 0.0,
+        "max_drawdown_pct": 0.0,
+        "trades": 0,
+        "win_rate_pct": 0.0
+      },
+      "buy_and_hold": {
+        "total_return_pct": 6.31,
+        "cagr_pct": 6.78,
+        "sharpe": 0.39,
+        "max_drawdown_pct": -34.07,
+        "trades": 1,
+        "win_rate_pct": 100.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": 13.39,
+        "cagr_pct": 14.43,
+        "sharpe": 0.51,
+        "max_drawdown_pct": -23.87,
+        "trades": 12,
+        "win_rate_pct": 33.33
+      },
+      "shap_top15": [
+        {
+          "feature": "volume_ma",
+          "mean_abs_shap": 0.055009
+        },
+        {
+          "feature": "bb_lower",
+          "mean_abs_shap": 0.054498
+        },
+        {
+          "feature": "obv_ma",
+          "mean_abs_shap": 0.044616
+        },
+        {
+          "feature": "macd_histogram",
+          "mean_abs_shap": 0.040193
+        },
+        {
+          "feature": "bb_upper",
+          "mean_abs_shap": 0.037515
+        },
+        {
+          "feature": "return_60d",
+          "mean_abs_shap": 0.024771
+        },
+        {
+          "feature": "vwap",
+          "mean_abs_shap": 0.022391
+        },
+        {
+          "feature": "price_momentum_60d",
+          "mean_abs_shap": 0.021973
+        },
+        {
+          "feature": "macd",
+          "mean_abs_shap": 0.019138
+        },
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.017903
+        },
+        {
+          "feature": "market_regime",
+          "mean_abs_shap": 0.012679
+        },
+        {
+          "feature": "price_to_ma_20",
+          "mean_abs_shap": 0.012648
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.012543
+        },
+        {
+          "feature": "obv_trend",
+          "mean_abs_shap": 0.01238
+        },
+        {
+          "feature": "vol_60d",
+          "mean_abs_shap": 0.011389
+        }
+      ]
+    },
+    "HMSP.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 1,
+        "best_score": 1.1148489944521673,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.3333,
+      "fold_oos_accuracy_std": 0.1236,
+      "fold_majority_baseline_mean": 0.5556,
+      "fold_macro_f1_mean": 0.2645,
+      "label_distribution": {
+        "-1": 629,
+        "0": 471,
+        "1": 286
+      },
+      "signal_days": 17,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": 5.36,
+        "cagr_pct": 5.76,
+        "sharpe": 0.4,
+        "max_drawdown_pct": -14.81,
+        "trades": 5,
+        "win_rate_pct": 20.0
+      },
+      "buy_and_hold": {
+        "total_return_pct": 24.53,
+        "cagr_pct": 26.52,
+        "sharpe": 0.69,
+        "max_drawdown_pct": -22.86,
+        "trades": 1,
+        "win_rate_pct": 100.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": 5.06,
+        "cagr_pct": 5.44,
+        "sharpe": 0.34,
+        "max_drawdown_pct": -22.0,
+        "trades": 11,
+        "win_rate_pct": 36.36
+      },
+      "shap_top15": [
+        {
+          "feature": "ma_50",
+          "mean_abs_shap": 0.008732
+        },
+        {
+          "feature": "obv_ma",
+          "mean_abs_shap": 0.005072
+        },
+        {
+          "feature": "price_to_vwap",
+          "mean_abs_shap": 0.004839
+        },
+        {
+          "feature": "bb_lower",
+          "mean_abs_shap": 0.004018
+        },
+        {
+          "feature": "return_60d",
+          "mean_abs_shap": 0.002838
+        },
+        {
+          "feature": "return_10d",
+          "mean_abs_shap": 0.002683
+        },
+        {
+          "feature": "bb_upper",
+          "mean_abs_shap": 0.002682
+        },
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.001267
+        },
+        {
+          "feature": "volume_ratio",
+          "mean_abs_shap": 0.001154
+        },
+        {
+          "feature": "stoch_d",
+          "mean_abs_shap": 0.001038
+        },
+        {
+          "feature": "vol_10d",
+          "mean_abs_shap": 0.000952
+        },
+        {
+          "feature": "return_5d",
+          "mean_abs_shap": 0.000644
+        },
+        {
+          "feature": "vol_60d",
+          "mean_abs_shap": 0.000629
+        },
+        {
+          "feature": "obv_trend",
+          "mean_abs_shap": 0.00061
+        },
+        {
+          "feature": "return_1d",
+          "mean_abs_shap": 0.000553
+        }
+      ]
+    },
+    "SMGR.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 1,
+        "best_score": 1.1103093630169596,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.5185,
+      "fold_oos_accuracy_std": 0.1497,
+      "fold_majority_baseline_mean": 0.6243,
+      "fold_macro_f1_mean": 0.2984,
+      "label_distribution": {
+        "-1": 720,
+        "0": 353,
+        "1": 313
+      },
+      "signal_days": 22,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": -4.0,
+        "cagr_pct": -4.28,
+        "sharpe": -0.29,
+        "max_drawdown_pct": -10.75,
+        "trades": 14,
+        "win_rate_pct": 42.86
+      },
+      "buy_and_hold": {
+        "total_return_pct": -17.39,
+        "cagr_pct": -18.53,
+        "sharpe": -0.13,
+        "max_drawdown_pct": -36.38,
+        "trades": 1,
+        "win_rate_pct": 0.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": -19.0,
+        "cagr_pct": -20.22,
+        "sharpe": -0.57,
+        "max_drawdown_pct": -21.14,
+        "trades": 11,
+        "win_rate_pct": 36.36
+      },
+      "shap_top15": [
+        {
+          "feature": "bb_upper",
+          "mean_abs_shap": 0.009305
+        },
+        {
+          "feature": "return_20d",
+          "mean_abs_shap": 0.005805
+        },
+        {
+          "feature": "ma_5",
+          "mean_abs_shap": 0.005722
+        },
+        {
+          "feature": "atr",
+          "mean_abs_shap": 0.003
+        },
+        {
+          "feature": "obv_trend",
+          "mean_abs_shap": 0.002372
+        },
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.002232
+        },
+        {
+          "feature": "vol_10d",
+          "mean_abs_shap": 0.001989
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.001721
+        },
+        {
+          "feature": "volume_ma",
+          "mean_abs_shap": 0.00076
+        },
+        {
+          "feature": "price_to_ma_20",
+          "mean_abs_shap": 0.000575
+        },
+        {
+          "feature": "obv_ma",
+          "mean_abs_shap": 0.000572
+        },
+        {
+          "feature": "ma_50",
+          "mean_abs_shap": 0.000555
+        },
+        {
+          "feature": "return_3d",
+          "mean_abs_shap": 0.000459
+        },
+        {
+          "feature": "volume_ratio",
+          "mean_abs_shap": 0.000399
+        },
+        {
+          "feature": "return_60d",
+          "mean_abs_shap": 0.0
+        }
+      ]
+    },
+    "JSMR.JK": {
+      "n_features": 45,
+      "n_features_dropped_unusable": 12,
+      "dropped_unusable": [
+        "adx",
+        "trend_strength",
+        "gold_1d_return",
+        "gold_5d_return",
+        "usdidr_1d_return",
+        "usdidr_5d_return",
+        "usdidr_vol_20d",
+        "btc_1d_return",
+        "btc_vol_30d",
+        "btc_regime",
+        "stock_btc_corr_20d",
+        "stock_gold_corr_20d"
+      ],
+      "n_samples": 1386,
+      "n_train": 1151,
+      "n_test": 235,
+      "purged_train_rows": 10,
+      "final_model": {
+        "best_iteration": 132,
+        "best_score": 0.9318817156196247,
+        "train_rows": 913,
+        "val_rows": 228
+      },
+      "folds": 3,
+      "fold_oos_accuracy_mean": 0.4497,
+      "fold_oos_accuracy_std": 0.1764,
+      "fold_majority_baseline_mean": 0.5608,
+      "fold_macro_f1_mean": 0.3421,
+      "label_distribution": {
+        "-1": 713,
+        "0": 402,
+        "1": 271
+      },
+      "signal_days": 9,
+      "meta_filter_applied": true,
+      "strategy": {
+        "total_return_pct": 7.18,
+        "cagr_pct": 7.72,
+        "sharpe": 1.28,
+        "max_drawdown_pct": -1.53,
+        "trades": 6,
+        "win_rate_pct": 50.0
+      },
+      "buy_and_hold": {
+        "total_return_pct": -19.82,
+        "cagr_pct": -21.09,
+        "sharpe": -0.53,
+        "max_drawdown_pct": -25.14,
+        "trades": 1,
+        "win_rate_pct": 0.0
+      },
+      "momentum_sma20": {
+        "total_return_pct": -26.71,
+        "cagr_pct": -28.34,
+        "sharpe": -1.6,
+        "max_drawdown_pct": -26.71,
+        "trades": 15,
+        "win_rate_pct": 26.67
+      },
+      "shap_top15": [
+        {
+          "feature": "obv_ma",
+          "mean_abs_shap": 0.073332
+        },
+        {
+          "feature": "vol_10d",
+          "mean_abs_shap": 0.033904
+        },
+        {
+          "feature": "ma_50",
+          "mean_abs_shap": 0.033411
+        },
+        {
+          "feature": "stoch_d",
+          "mean_abs_shap": 0.033244
+        },
+        {
+          "feature": "macd_signal",
+          "mean_abs_shap": 0.033002
+        },
+        {
+          "feature": "macd_histogram",
+          "mean_abs_shap": 0.031886
+        },
+        {
+          "feature": "obv",
+          "mean_abs_shap": 0.030539
+        },
+        {
+          "feature": "vol_5d",
+          "mean_abs_shap": 0.026944
+        },
+        {
+          "feature": "rsi_30",
+          "mean_abs_shap": 0.023023
+        },
+        {
+          "feature": "return_5d",
+          "mean_abs_shap": 0.022917
+        },
+        {
+          "feature": "price_to_ma_50",
+          "mean_abs_shap": 0.022794
+        },
+        {
+          "feature": "bb_middle",
+          "mean_abs_shap": 0.019781
+        },
+        {
+          "feature": "bb_std",
+          "mean_abs_shap": 0.019777
+        },
+        {
+          "feature": "vol_60d",
+          "mean_abs_shap": 0.018922
+        },
+        {
+          "feature": "volume_ma",
+          "mean_abs_shap": 0.017147
+        }
+      ]
+    }
+  },
+  "figures": {
+    "equity_curve": "fig_equity_curve.png",
+    "fold_accuracy": "fig_fold_accuracy.png",
+    "sharpe_distribution": "fig_sharpe_distribution.png",
+    "shap": "fig_shap.png"
+  }
+}

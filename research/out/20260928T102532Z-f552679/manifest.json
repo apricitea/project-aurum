@@ -1,0 +1,233 @@
+{
+  "run_id": "20260928T102532Z-f552679",
+  "timestamp_utc": "2026-09-28T10:25:41.051465+00:00",
+  "git": {
+    "commit": "f552679d28ad0818a19ff3c7572a67b25968d2af",
+    "dirty": true,
+    "branch": "main"
+  },
+  "config": {
+    "universe": [
+      "BBCA.JK",
+      "BMRI.JK",
+      "BBRI.JK",
+      "BBNI.JK",
+      "TLKM.JK",
+      "ASII.JK",
+      "UNVR.JK",
+      "INDF.JK",
+      "KLBF.JK",
+      "ADRO.JK",
+      "ANTM.JK",
+      "PTBA.JK",
+      "GGRM.JK",
+      "HMSP.JK",
+      "SMGR.JK",
+      "JSMR.JK"
+    ],
+    "benchmark": "^JKSE",
+    "train_start": "2020-01-01",
+    "train_end": "2024-12-31",
+    "test_start": "2025-01-01",
+    "test_end": "2025-12-31",
+    "pt_multiplier": 2.0,
+    "sl_multiplier": 1.0,
+    "label_horizon_bars": 10,
+    "fold_train_bars": 252,
+    "fold_test_bars": 63,
+    "inner_val_frac": 0.2,
+    "n_estimators": 400,
+    "learning_rate": 0.04,
+    "num_leaves": 31,
+    "max_depth": 5,
+    "min_child_samples": 50,
+    "subsample": 0.8,
+    "colsample_bytree": 0.7,
+    "reg_alpha": 0.1,
+    "reg_lambda": 1.0,
+    "early_stopping_rounds": 40,
+    "n_jobs": 2,
+    "seed": 42,
+    "buy_cost": 0.0015,
+    "sell_cost": 0.0025,
+    "confidence_threshold": 0.0,
+    "include_cross_asset": true
+  },
+  "environment": {
+    "python": "3.12.3",
+    "platform": "Linux-6.8.0-142-generic-x86_64-with-glibc2.39",
+    "lightgbm": "4.6.0",
+    "scikit_learn": "1.5.2",
+    "yfinance": "1.3.0",
+    "pandas": "2.2.3",
+    "numpy": "1.26.4"
+  },
+  "data": {
+    "source": "yfinance adjusted daily OHLCV, cached to CSV",
+    "cache_dir": "data/raw/research_cache",
+    "files_sha256": {
+      "BBCA.JK": {
+        "file": "BBCA.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "b4452803dd352e0780fdcbeb93ef1526dffbff11abd9206531f8e20db557d69b",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "BMRI.JK": {
+        "file": "BMRI.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "06cb7f12197c0c0f48be119b8eac38512a7e5c028a0b0b4d28e9b7ae6f832e9e",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "BBRI.JK": {
+        "file": "BBRI.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "558aa37a68553eaedb5da6dc80edf6c3346d9f43ac7b0cada7b4fbb51a7bec70",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "BBNI.JK": {
+        "file": "BBNI.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "3bcbf7d3daa6616d7456eaebb98947574a3f5771d532cd6479bb03629e8d9a25",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "TLKM.JK": {
+        "file": "TLKM.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "76bd093cafb20a3035324c35a28aef910ef48e042d87051abed4006bb70e5aa0",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "ASII.JK": {
+        "file": "ASII.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "a2ab82f7dce348b4838551cc792a817e3b985681c481a4585592681191326e96",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "UNVR.JK": {
+        "file": "UNVR.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "863ba79fb12cdcd790d07c82992c54641118e43f28dd1fd9c1567fa2a7f38603",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "INDF.JK": {
+        "file": "INDF.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "dc298e76766d947c1bcca8b6eeeeffe0448ec829b819915504b4f0a83ad7dd18",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "KLBF.JK": {
+        "file": "KLBF.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "6d655a2fc722541415147c5dfa45ef3a9a81eee9f51db285976546ec5ef8ba4f",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "ADRO.JK": {
+        "file": "ADRO.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "d639740a0b36fc8c02ebcc3d7616016ae0c0791f5497b4927c5c0976f3a304d3",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "ANTM.JK": {
+        "file": "ANTM.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "18f5523ebadc0d0a8cdfe3486262fbf8301ca8473c6d7a48d025ee2a79642dd7",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "PTBA.JK": {
+        "file": "PTBA.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "7ba6eb27abfbcb99fb076c92d26806120a89d999bdc89fa18104e188a2614f55",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "GGRM.JK": {
+        "file": "GGRM.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "cef08629379c638c6544ef0c14fff424856a92f521462e91ebc22d46e41c9bfa",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "HMSP.JK": {
+        "file": "HMSP.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "cc4cc5965b7bcc839caf2a31d64625d0530ffa9d32c21f86b3bd8a5aef1d19ba",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "SMGR.JK": {
+        "file": "SMGR.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "238ad6c5bb0cef224db6ce3c34d26dd3f768c01cd69a0d23666badc48f617ccd",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "JSMR.JK": {
+        "file": "JSMR.JK__2020-01-01__2025-12-31.csv",
+        "sha256": "d0824706849a57f27958e111933717b2701d566934def27cd7d37054e15786e1",
+        "rows": 1447,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "USDIDR=X": {
+        "file": "USDIDR_X__2020-01-01__2025-12-31.csv",
+        "sha256": "b77020a7ccc86fa439d03cc7cd1936e785e26ed76e8a5f1885a182d8a1bc905c",
+        "rows": 1561,
+        "first": "2020-01-01",
+        "last": "2025-12-30"
+      },
+      "GC=F": {
+        "file": "GC_F__2020-01-01__2025-12-31.csv",
+        "sha256": "82920b5ca03a162090920e9dde423c3637b88368b1c17782306ecadaf0af8cc9",
+        "rows": 1510,
+        "first": "2020-01-02",
+        "last": "2025-12-30"
+      },
+      "BTC-USD": {
+        "file": "BTC_USD__2020-01-01__2025-12-31.csv",
+        "sha256": "25ed774d41350bc86e69d0b74d734a4dfd782e102ed15b2e0d7af5224c971b6c",
+        "rows": 2191,
+        "first": "2020-01-01",
+        "last": "2025-12-30"
+      }
+    }
+  },
+  "evaluation": {
+    "train_window": [
+      "2020-01-01",
+      "2024-12-31"
+    ],
+    "test_window": [
+      "2025-01-01",
+      "2025-12-31"
+    ],
+    "label_horizon_bars": 10,
+    "purge": "training rows whose label resolves at or after the test window are dropped",
+    "embargo": "10 trading bars between train end and test start",
+    "scaler": "RobustScaler fitted on the inner-train slice of each fit, never on test data",
+    "early_stopping": "chronological inner validation tail of the training slice; the test window is never used for early stopping",
+    "sample_weights": "average label uniqueness (L\u00f3pez de Prado, AFML ch. 4)",
+    "costs": {
+      "buy": 0.0015,
+      "sell": 0.0025
+    },
+    "execution": "signal from close of bar t is executed from bar t+1"
+  },
+  "known_limitations": [
+    "Long/flat only; the production engine also models short signals.",
+    "A single 2025 test window \u2014 one year is not all market regimes.",
+    "Barrier hits are evaluated on close prices, so intrabar paths are not modelled.",
+    "No cross-sectional (multi-asset) model: each ticker is modelled independently.",
+    "Survivorship: the universe is today's large caps, not a point-in-time index membership.",
+    "yfinance is a secondary vendor for IDX data; corporate-action handling is not verified."
+  ]
+}
