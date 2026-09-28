@@ -6,20 +6,23 @@ Quantitative trading system for the Indonesian Stock Exchange (IDX). Ensemble ML
 
 ---
 
-## Backtest Results
+## Evaluation status
 
-XGBoost signal model, out-of-sample on 2025 IDX data (trained on 2020–2024):
+Research prototype; performance claims require a reproducible run manifest.
+The checked-in [`backtest_results.json`](backtest_results.json) contains these aggregate **per-ticker** results:
 
-| Metric | Result |
+| Artifact field | Value |
 |---|---|
-| Total return | 195.6% |
-| Sharpe ratio | 2.70 |
-| Win rate | 44.2% |
-| Max drawdown | -17.6% |
-| Total trades | 509 |
-| Transaction costs | Included (0.15% buy / 0.25% sell) |
+| Tickers evaluated | 16 |
+| Mean ticker return | -2.01% |
+| Mean ticker Sharpe | -0.04 |
+| Mean ticker win rate | 31.14% |
+| Mean ticker maximum drawdown magnitude | 18.44% |
 
-> Backtested results, not live performance.
+These are arithmetic summaries across tickers, not portfolio performance or live returns.
+The earlier 195.6% return / 2.70 Sharpe / 509-trade claim has no linked run artifact in this checkout and is withdrawn from the project summary pending reconciliation. Different runs and aggregation methods cannot be compared directly.
+
+Before reporting performance, preserve the input data hashes, source/licensing information, code revision, environment lockfile, exact train/test dates, split and purge rules, seeds, model configuration, trade ledger, cost assumptions, and benchmark results with one run ID. Walk-forward validation and an embargo alone do not establish absence of leakage.
 
 ---
 
