@@ -133,17 +133,18 @@ def generate_secure_password(length: int = 16) -> str:
     digits = '0123456789'
     special = '!@#$%^&*()_+-=[]{}|;:,.<>?'
     
-    # Ensure at least one character from each category
+    # Ensure the generated password meets PasswordPolicy.min_special_chars (= 2)
+    # as well as one of each other required class.
     password_chars = [
         secrets.choice(uppercase),
         secrets.choice(lowercase),
         secrets.choice(digits),
-        secrets.choice(special)
+        secrets.choice(special),
+        secrets.choice(special),
     ]
-    
-    # Fill remaining length with random characters
+
     all_chars = uppercase + lowercase + digits + special
-    for _ in range(length - 4):
+    for _ in range(max(0, length - 5)):
         password_chars.append(secrets.choice(all_chars))
     
     # Shuffle the password
