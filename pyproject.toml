@@ -53,7 +53,7 @@ dependencies = [
     "slowapi==0.1.9",
     "sqlalchemy==2.0.36",
     "statsmodels==0.14.2",
-    "structlog==23.2.0",
+    "structlog==26.1.0",
     "tqdm==4.67.1",
     "twilio==9.3.7",
     "ujson>=5.13.0",

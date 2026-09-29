@@ -528,7 +528,7 @@ starlette==1.7.0
     #   fastapi
 statsmodels==0.14.2
     # via project-aurum (pyproject.toml)
-structlog==23.2.0
+structlog==26.1.0
     # via project-aurum (pyproject.toml)
 tenacity==9.1.2
     # via
