@@ -1,5 +1,8 @@
 # Project Aurum
 
+[![CI](https://github.com/apricitea/project-aurum/actions/workflows/ci.yml/badge.svg)](https://github.com/apricitea/project-aurum/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Quantitative trading system for the Indonesian Stock Exchange (IDX). Ensemble ML signal generation with rigorous time-series validation methodology, real-time alerting, and risk management.
 
 **Team:** [apricitea](https://github.com/apricitea), [na-ive](https://github.com/na-ive), [mfalfath25](https://github.com/mfalfath25), [rizbud](https://github.com/rizbud)
