@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Sync dependencies
+        run: uv sync --frozen --group dev
+
+      - name: Unit tests (no live Postgres / Redis)
+        run: >
+          uv run pytest -q
+          --cov-fail-under=0
+          tests/test_triple_barrier.py
+          tests/test_walk_forward.py
+          tests/test_walk_forward_validator.py
+          tests/test_meta_labeler.py
+          tests/test_lightgbm_model.py
+          tests/test_schemas.py
+          tests/test_password_security.py
+          tests/test_feature_engineering.py
+          tests/test_feature_engineering_overhaul.py
+          tests/test_backtest_engine.py
+          tests/test_backtesting_engine.py
+          tests/test_cross_asset_loader.py
+          tests/test_model_ensemble.py
