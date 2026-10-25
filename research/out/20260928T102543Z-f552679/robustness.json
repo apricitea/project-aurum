@@ -1,0 +1,129 @@
+{
+  "tickers": [
+    "ADRO.JK",
+    "ANTM.JK",
+    "ASII.JK",
+    "BBCA.JK",
+    "BBNI.JK",
+    "BBRI.JK",
+    "BMRI.JK",
+    "GGRM.JK",
+    "HMSP.JK",
+    "INDF.JK",
+    "JSMR.JK",
+    "KLBF.JK",
+    "PTBA.JK",
+    "SMGR.JK",
+    "TLKM.JK",
+    "UNVR.JK"
+  ],
+  "n_tickers": 16,
+  "comparisons": {
+    "strategy_vs_buy_hold__total_return_pct": {
+      "n": 16,
+      "wins": 10,
+      "losses": 6,
+      "ties": 0,
+      "median_difference": 2.85,
+      "mean_difference": -7.864375,
+      "sign_test_p": 0.454498291015625,
+      "wilcoxon_statistic": 68.0,
+      "wilcoxon_p": 1.0
+    },
+    "strategy_vs_momentum__total_return_pct": {
+      "n": 16,
+      "wins": 11,
+      "losses": 5,
+      "ties": 0,
+      "median_difference": 8.670000000000002,
+      "mean_difference": 4.834375,
+      "sign_test_p": 0.210113525390625,
+      "wilcoxon_statistic": 43.0,
+      "wilcoxon_p": 0.21142578125
+    },
+    "strategy_vs_buy_hold__sharpe": {
+      "n": 16,
+      "wins": 8,
+      "losses": 8,
+      "ties": 0,
+      "median_difference": -0.009999999999999995,
+      "mean_difference": -0.08625,
+      "sign_test_p": 1.0,
+      "wilcoxon_statistic": 61.0,
+      "wilcoxon_p": 0.743560791015625
+    },
+    "strategy_vs_momentum__sharpe": {
+      "n": 16,
+      "wins": 12,
+      "losses": 4,
+      "ties": 0,
+      "median_difference": 0.25,
+      "mean_difference": 0.448125,
+      "sign_test_p": 0.076812744140625,
+      "wilcoxon_statistic": 35.0,
+      "wilcoxon_p": 0.09344482421875
+    },
+    "strategy_vs_buy_hold__max_drawdown_pct": {
+      "n": 16,
+      "wins": 0,
+      "losses": 16,
+      "ties": 0,
+      "median_difference": -23.240000000000002,
+      "mean_difference": -21.620625,
+      "sign_test_p": 3.0517578125e-05,
+      "wilcoxon_statistic": 0.0,
+      "wilcoxon_p": 3.0517578125e-05
+    },
+    "strategy_vs_momentum__max_drawdown_pct": {
+      "n": 16,
+      "wins": 1,
+      "losses": 15,
+      "ties": 0,
+      "median_difference": -17.005000000000003,
+      "mean_difference": -17.110625,
+      "sign_test_p": 0.000518798828125,
+      "wilcoxon_statistic": 1.0,
+      "wilcoxon_p": 6.103515625e-05
+    }
+  },
+  "strategy_sharpe_vs_zero": {
+    "median_sharpe": 0.0,
+    "share_positive": 0.4375,
+    "wilcoxon_statistic": 11.0,
+    "wilcoxon_p": 0.09260069782067576
+  },
+  "fold_accuracy_vs_majority": {
+    "n": 16,
+    "wins": 1,
+    "losses": 15,
+    "ties": 0,
+    "median_difference": -0.15605000000000005,
+    "mean_difference": -0.17063125,
+    "sign_test_p": 0.000518798828125,
+    "wilcoxon_statistic": 2.0,
+    "wilcoxon_p": 9.1552734375e-05
+  },
+  "exposure": {
+    "median_exposure": 0.02127659574468085,
+    "min_exposure": 0.0,
+    "max_exposure": 0.6042553191489362,
+    "tickers_with_no_trades": 6,
+    "zero_trade_tickers": [
+      "ADRO.JK",
+      "ANTM.JK",
+      "BBCA.JK",
+      "BBRI.JK",
+      "GGRM.JK",
+      "INDF.JK"
+    ],
+    "spearman_exposure_vs_return_difference": 0.06805382985636525,
+    "win_rate_among_traded_tickers": 0.6,
+    "n_traded_tickers": 10,
+    "mean_exposure_of_winners": 0.04042553191489362,
+    "mean_exposure_of_losers": 0.11843971631205674
+  },
+  "tests": {
+    "sign_test": "two-sided exact binomial on per-ticker wins",
+    "wilcoxon": "two-sided Wilcoxon signed-rank on paired differences"
+  }
+}

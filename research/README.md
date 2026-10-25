@@ -113,6 +113,33 @@ stay friendly to the shared host.
 - `out/20260928T102532Z-f552679/` — no meta-labeler filter
 - `out/20260928T102543Z-f552679/` — technical features only
 
+## Cross-sectional robustness
+
+`research/robustness.py` asks whether the portfolio-level conclusion is an artefact of a
+handful of tickers, using only the per-ticker block already committed in a run. No
+re-fitting, no new data.
+
+On the main configuration (`20260928T102521Z-f552679`):
+
+| Comparison | Result |
+|---|---|
+| Walk-forward accuracy vs majority-class baseline | **0 of 16 tickers** beat the baseline (sign-test p = 3.05e-5). Classification skill is not present in this cross-section. |
+| Strategy vs buy-and-hold, total return | 8 of 16 wins, sign-test p = 1. Not distinguishable from chance. |
+| Median time in market | **3.0% of test days**; 4 of 16 names never open a position. |
+| Spearman(exposure, return difference vs buy-and-hold) | **−0.42**. Sitting in cash on falling names is what produces a "win" on raw return. |
+
+The honest reading: the signal is not usable as a trading rule, and a long/flat overlay
+that is in cash most of the time is consistent with a near-zero portfolio return even
+when the index rose. The 8–8 split on raw return is **not** evidence of an anti-edge;
+with 16 tickers that split is chance. Reporting it as established would be the same
+error as the withdrawn 195% claim, in reverse.
+
+```bash
+uv run python research/robustness.py --run-dir research/out/20260928T102521Z-f552679
+```
+
+Outputs: `ROBUSTNESS.md`, `robustness.json`, `fig_per_ticker_vs_buyhold.png` beside the run.
+
 ## Honest status of this experiment
 
 This is a negative result, and negative results are only useful if their own limitations
