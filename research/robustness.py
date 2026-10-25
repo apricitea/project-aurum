@@ -129,7 +129,10 @@ def build_report(results: dict, exposure: dict[str, dict[str, float]] | None = N
 
     comparisons: dict[str, dict] = {}
     for metric in METRICS:
-        higher_better = metric != "max_drawdown_pct"
+        # All three metrics are signed, and "better" means larger for every one of them:
+        # a drawdown of -3% is better than -18%. Treating drawdown as lower-is-better
+        # inverted the comparison and reported a 1/16 win rate where the true rate is 15/16.
+        higher_better = True
         strategy = series("strategy", metric)
         buy_hold = series("buy_and_hold", metric)
         momentum = series("momentum_sma20", metric)

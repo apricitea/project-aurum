@@ -1,6 +1,6 @@
 # Cross-sectional robustness of the Aurum result
 
-Generated 2026-10-25 14:02 UTC by
+Generated 2026-10-25 14:43 UTC by
 `research/robustness.py` from the per-ticker block of a committed run. No re-fitting
 and no new data: this asks only whether the conclusion holds across the 16 tickers,
 rather than being carried by a few of them.
@@ -11,7 +11,7 @@ rather than being carried by a few of them.
 |---|---|---|---|---|
 | total return | 8/16 | +1.390 | 1 | 0.8603 |
 | Sharpe | 5/16 | -0.220 | 0.2101 | 0.1167 |
-| max drawdown | 1/16 | -21.760 | 0.0005188 | 6.104e-05 |
+| max drawdown | 15/16 | +21.760 | 0.0005188 | 6.104e-05 |
 
 A win means the strategy's per-ticker value is strictly better than buy-and-hold's on
 that ticker; ties are excluded from the sign test.
