@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this work, cite it as below."
+type: software
+title: "Project Aurum: reproducible evaluation of an IDX equity signal pipeline"
+authors:
+  - family-names: Nataputra
+    given-names: Alvin Christian
+    email: alvincnataputra@gmail.com
+    website: https://apricitea.github.io
+repository-code: "https://github.com/apricitea/project-aurum"
+url: "https://apricitea.github.io"
+license: MIT
+version: "1.0.0"
+date-released: "2026-10-25"
+abstract: >-
+  Self-contained re-evaluation of a quantitative trading system for the Indonesia Stock Exchange: purge and embargo, fold-local scaling, average-uniqueness sample weights, buy-and-hold and momentum baselines under identical costs, and per-ticker robustness tests.
